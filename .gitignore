@@ -83,6 +83,7 @@ install_manifest.txt
 /build
 /dist
 *.pyc
+MANIFEST
 
 # Executables
 /record

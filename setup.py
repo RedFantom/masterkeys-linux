@@ -10,10 +10,33 @@ except ImportError:
     raise
 
 
+def read(file_name):
+    with open(file_name) as fi:
+        contents = fi.read()
+    return contents
+
+
 setup(
     name="masterkeys",
     version="0.1.0",
-    description="MasterKeys Control Library",
     packages=["masterkeys"],
-    zip_safe=False
+    description="MasterKeys Control Library for Linux",
+    author="RedFantom",
+    url="https://github.com/RedFantom/masterkeys-linux",
+    download_url="https://github.com/RedFantom/masterkeys-linux/releases",
+    license="GNU GPLv3",
+    classifiers=[
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: C",
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: POSIX :: Linux",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Hardware",
+    ],
+    long_description=read("README.md"),
+    zip_safe=False,
+    install_requires=["scikit-build"]
 )
