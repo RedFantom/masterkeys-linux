@@ -1,4 +1,4 @@
-language: c
+language: python
 sudo: required
 dist: trusty
 compiler: gcc
@@ -6,6 +6,10 @@ matrix:
   include:
   - os: linux
     python: '2.7'
+  - os: linux
+    python: '3.4'
+  - os: linux
+    python: '3.5'
   - os: linux
     python: '3.6'
 addons:
@@ -15,7 +19,7 @@ addons:
     - python-dev
     - python3-dev
 install:
-  - sudo python -m pip install -U pip scikit-build
+  - python -m pip install -U pip scikit-build
 before_script:
   - mkdir cmake-build
 script:
@@ -24,6 +28,19 @@ script:
   - make
   - sudo make install
   - cd ..
-  - sudo env "PATH=$PATH" python setup.py install
+  - python setup.py install
   - cd ..
   - python -c 'import masterkeys'
+  - cd masterkeys-linux
+  - python setup.py bdist_wheel
+deploy:
+  provider: releases
+  api_key:
+    secure: lXCsKO3uk3IxAnTmy+ES6oOYivGEBNYnR6LPA1AhclMiYMEY37qb0EFWZF9ne2TI4bzIwoe9sDGA11IPXuL8yVwayPNjOG60viTv+LAB2y3gHXziGAy8PdEqcO3jXnY8M07HxG5DwwJMHaAnfJeuzv+nsYGoMEmXfHPWXEb/OiaQ8ieqrHlxysSHkpNt8zzfW26jenbEQHnq2hw5s41f47eCvYCVBph2KeJAcpy8DfRhTeYo+tb7umwCU2mT8w3y6/jwwVh4FNMq+D5MVHD+0crW0dIY9bmA/p05YLN64qE51z6l2Tpo+OL7Aafd3RWJ2r1NnEdMxJpQbb/AFoBZHSxbKkAp3TDOl+/i9ZUAfoZ+JJ5gPi5WuBy69Y1JLAO7OtzPG6Sgb3WtSRAPojmE4389Q6/tvwcPFUudytLuC23tRuaOUm66nUVBmbadA+vhMbScwf6cINwPvUYQbsrX0/77N3zVJZ0ZLNhFucfp2vFnnGBxsqAM7PK2rLIMxx9nNi/3Yy/Fjy4eDD8v10wJQDFsNk3pvsisFi+JkqFw2cB3QURVVn9Ao2/EoDIlU5Yr6O99ZefaHPTlNXjs24H9LI/mae1Ct0t5R8qUKndoanDIwvwukvHU8nLmWrBFi8fxH5aC0Gta09ku9q6tmz5Wpbn+kpT9wWJf03GwMfa1yVg=
+  file: dist/*.whl
+  file_glob: true
+  on:
+    tags: true
+    repo: RedFantom/masterkeys-linux
+    branch: master
+  skip_cleanup: true

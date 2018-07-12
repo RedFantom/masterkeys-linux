@@ -1,7 +1,7 @@
 # Author: RedFantom
 # License: GNU GPLv3
 # Copyright (c) 2018 RedFantom
-project(libmk VERSION 0.1.5 DESCRIPTION "MasterKeys RGB Library")
+project(libmk VERSION 0.1.0 DESCRIPTION "MasterKeys RGB Library")
 include(FindLibUSB.txt)
 
 add_library(mk SHARED libmk/libmk.c)
