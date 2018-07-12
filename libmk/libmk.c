@@ -32,8 +32,8 @@
  * The variables are required so that if the library is loaded into a
  * different language (like Python), interaction is easier.
 */
-static LibMK_Handle* DeviceHandle;
 static libusb_context* Context;
+static LibMK_Handle* DeviceHandle;
 
 
 typedef enum LibMK_Model LibMK_Model;
@@ -407,6 +407,16 @@ LibMK_Model libmk_ident_model(char* product) {
     else if (strstr(product, SMALL) != NULL)
         return DEV_RGB_S;
     return DEV_RGB_M;
+}
+
+
+int libmk_get_device_ident(LibMK_Handle* handle) {
+    /** Return the bDevice attribute of a LibMK_Handle struct */
+    if (handle == NULL)
+        handle = DeviceHandle;
+    if (handle == NULL)
+        return 0x0000;
+    return DeviceHandle->bDevice;
 }
 
 

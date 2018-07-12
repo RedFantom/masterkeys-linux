@@ -76,6 +76,7 @@ CMakeCache.txt
 *CMakeTmp*
 *CMakeFiles*
 *CMakeCache.txt
+install_manifest.txt
 
 # Python packages
 /*.egg-info
@@ -84,5 +85,6 @@ CMakeCache.txt
 *.pyc
 
 # Executables
-record
-main
+/record
+/main
+/ambilight

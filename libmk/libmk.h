@@ -117,10 +117,7 @@ typedef struct LibMK_Device {
 
 
 typedef struct LibMK_Handle {
-    /** Struct describing an opened device
-     *
-     *
-     */
+    /** Struct describing an opened device */
     LibMK_Model model;
     int bVendor;
     int bDevice;
@@ -138,7 +135,6 @@ typedef struct LibMK_Effect_Details {
     unsigned char foreground[3];
     unsigned char background[3];
 } LibMK_Effect_Details;
-
 
 /** Library management and initialization */
 bool libmk_init();
@@ -169,6 +165,7 @@ int libmk_disable_control(LibMK_Handle* handle);
 int libmk_claim_interface(LibMK_Handle* handle);
 int libmk_send_control_packet(LibMK_Handle* handle);
 int libmk_reset(LibMK_Handle* handle);
+int libmk_get_device_ident(LibMK_Handle* handle);
 
 
 /** Communication */

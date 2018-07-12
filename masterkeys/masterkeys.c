@@ -228,6 +228,12 @@ static PyObject* masterkeys_set_effect_details(PyObject* self, PyObject* args) {
 }
 
 
+static PyObject* masterkeys_get_device_ident(PyObject* self, PyObject* args) {
+    /** Return the bDevice value for the controlled keyboard */
+    return PyInt_FromLong(libmk_get_device_ident(NULL));
+}
+
+
 static struct PyMethodDef masterkeys_funcs[] = {
     {
         "detect_devices",
@@ -276,6 +282,11 @@ static struct PyMethodDef masterkeys_funcs[] = {
         masterkeys_set_effect_details,
         METH_VARARGS,
         "Set the effect on the keyboard with specific arguments"
+    }, {
+        "get_device_ident",
+        masterkeys_get_device_ident,
+        METH_NOARGS,
+        "Return the bDevice USB descriptor value"
     }, {NULL, NULL, 0, NULL}
 };
 

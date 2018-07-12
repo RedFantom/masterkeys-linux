@@ -21,22 +21,22 @@ int set_device(model)
     Set the device to use with the library. Only a single device is
     supported. If multiple devices of the same model are connected, the
     first encountered is set to control.
-    :param model: enum Model of device to set
-    :return: enum Result code
+    :param model: Model number of device to set
+    :return: result code (SUCCESS or ERR*)
     :raises: TypeError upon invalid argument type
 
 int enable_control()
     Send the control packet to the keyboard set to control.
-    :return: enum Result code
+    :return: result code (SUCCESS or ERR*)
 
 int disable_control()
     Send the packet to release control to the keyboard set to control.
-    :return: enum Result code
+    :return: result code (SUCCESS or ERR*)
 
 int set_effect(effect)
     Set one of the built-in LED effects on the keyboard.
-    :param effect: enum Effect to enable
-    :return: enum Result code
+    :param effect: Effect number (EFF*)
+    :return: result code (SUCCESS or ERR*)
     :raises: TypeError upon invalid argument type
 
 int set_full_led_color(r, g, b)
@@ -44,13 +44,13 @@ int set_full_led_color(r, g, b)
     :param r: Red color value, 0-255 (two symbol HEX)
     :param g: Green color value
     :param b: Blue color value
-    :return: enum Result code
+    :return: result code (SUCCESS or ERR*)
     :raises: TypeError upon invalid argument type or count
 
 int set_all_led_color(layout)
     Set the color of all the LEDs on the keyboard from a list of lists
     :param layout: List of lists of tuples ([row][col][index])
-    :return: enum Result code
+    :return: result code (SUCCESS or ERR*)
     :raises: TypeError if invalid type in the argument
     :raises: ValueError if invalid amount of elements in the argument
 
@@ -59,79 +59,71 @@ int set_ind_led_color(row, col, r, g, b)
     conjunction with the set_full_led_color function.
     :param row, col: Coordinates of LED to set color of
     :param r, g, b: Color values
-    :return: enum Result code
+    :return: result code (SUCCESS or ERR*)
     :raises: TypeError upon invalid argument type
 """
-from enum import Enum
 from .masterkeys import *
 
 
 MAX_ROWS = 7
 MAX_COLS = 24
 
+# Success codes
+SUCCESS = 0
 
-class Result(Enum):
-    """Describes error codes that are used in libmk"""
-    # Success codes
-    SUCCESS = 0
+# Device Errors
+ERR_INVALID_DEV = 1
+ERR_DEV_NOT_CONNECTED = 2
+ERR_DEV_NOT_SET = 3
+ERR_UNKNOWN_LAYOUT = 14
+ERR_DEV_NOT_CLOSED = 15
+ERR_DEV_RESET_FAILED = 16
 
-    # Device Errors
-    ERR_INVALID_DEV = 1
-    ERR_DEV_NOT_CONNECTED = 2
-    ERR_DEV_NOT_SET = 3
-    ERR_UNKNOWN_LAYOUT = 14
-    ERR_DEV_NOT_CLOSED = 15
-    ERR_DEV_RESET_FAILED = 16
+# Interface Errors
+ERR_IFACE_CLAIM_FAILED = 4
+ERR_IFACE_RELEASE_FAILED = 5
+ERR_DEV_CLOSE_FAILED = 6
+ERR_DEV_OPEN_FAILED = 7
 
-    # Interface Errors
-    ERR_IFACE_CLAIM_FAILED = 4
-    ERR_IFACE_RELEASE_FAILED = 5
-    ERR_DEV_CLOSE_FAILED = 6
-    ERR_DEV_OPEN_FAILED = 7
+# Kernel Driver Errors
+ERR_KERNEL_DRIVER = 8
 
-    # Kernel Driver Errors
-    ERR_KERNEL_DRIVER = 8
+# Communication Errors
+ERR_DEV_LIST = 9
+ERR_TRANSFER = 10
+ERR_DESCR = 11  # Descriptor
+ERR_SEND = 12
 
-    # Communication Errors
-    ERR_DEV_LIST = 9
-    ERR_TRANSFER = 10
-    ERR_DESCR = 11  # Descriptor
-    ERR_SEND = 12
+# Protocol Errors
+ERR_PROTOCOL = 13
 
-    # Protocol Errors
-    ERR_PROTOCOL = 13
+# Effects
+EFF_FULL_ON = 0
+EFF_BREATH = 1
+EFF_BREATH_CYCLE = 2
+EFF_SINGLE = 3
+EFF_WAVE = 4
+EFF_RIPPLE = 5
+EFF_CROSS = 6
+EFF_RAIN = 7
+EFF_STAR = 8
+EFF_SNAKE = 9
+EFF_REC = 10
+EFF_SPECTRUM = 11
+EFF_RAPID_FIRE = 12
 
+# Models
+MODEL_RGB_L = 0
+MODEL_RGB_M = 5
+MODEL_RGB_S = 1
 
-class Effect(Enum):
-    """Describes built-in LED Effect numbers"""
-    EFF_FULL_ON = 0
-    EFF_BREATH = 1
-    EFF_BREATH_CYCLE = 2
-    EFF_SINGLE = 3
-    EFF_WAVE = 4
-    EFF_RIPPLE = 5
-    EFF_CROSS = 6
-    EFF_RAIN = 7
-    EFF_STAR = 8
-    EFF_SNAKE = 9
-    EFF_REC = 10
-    EFF_SPECTRUM = 11
-    EFF_RAPID_FIRE = 12
+MODEL_WHITE_L = 2
+MODEL_WHITE_M = 3
+MODEL_WHITE_S = 7
 
-
-class Model(Enum):
-    """Describes models supported by this library"""
-    RGB_L = 0
-    RGB_M = 5
-    RGB_S = 1
-
-    WHITE_L = 2
-    WHITE_M = 3
-    WHITE_S = 7
-
-    NOT_SET = -1
-    ANY = -2
-    UNKNOWN = -3
+MODEL_NOT_SET = -1
+MODEL_ANY = -2
+MODEL_UNKNOWN = -3
 
 
 def set_all_led_color_dict(keys):

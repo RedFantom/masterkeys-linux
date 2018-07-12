@@ -15,7 +15,7 @@ addons:
     - python-dev
     - python3-dev
 install:
-  - sudo python -m pip install -U pip scikit-build enum
+  - sudo python -m pip install -U pip scikit-build
 before_script:
   - mkdir cmake-build
 script:
