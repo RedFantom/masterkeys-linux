@@ -42,8 +42,10 @@ distribution, the name of the packages (if they are provided) may
 differ from the ones given here. The reference commands are for Ubuntu.
 ```bash
 # Include libx11-dev if you wish to run the ambilight example
-sudo apt-get install cmake libusb-dev
+sudo apt-get install cmake libusb-1.0.0-dev
 cd Source/masterkeys-linux  # Or wherever you have cloned the repo
+# Automatically also builds target ambilight
+# Exclude the examples in the CMakeLists.txt if you do not have libx11-dev
 cmake .
 make
 sudo make install
@@ -51,7 +53,15 @@ sudo make install
 # For the Python library (system-wide install)
 sudo python -m pip install scikit-build
 sudo python setup.py install
+
+# Or if you would rather install from PyPI
+sudo python -m pip install masterkeys
 ```
+
+Wheels are not provided at this time because building `manylinux` wheels
+requires a different environment. It is considered as a possibility 
+though. Until that time, it is possible to use the normal `linux_x86_64`
+wheels provided on the [releases-page](https://github.com/RedFantom/masterkeys-linux/releases).
 
 ## Contributing
 Pull Requests and contributions in other forms (such as issue reports) 
