@@ -47,7 +47,7 @@ int main(void) {
 
         int color = 200;
         unsigned char colors[LIBMK_MAX_ROWS][LIBMK_MAX_COLS][3] = {0};
-        for (short row=0; row < 1; row++)
+        for (short row=0; row < LIBMK_MAX_ROWS; row++)
             for (short col=0; col < LIBMK_MAX_COLS; col++) {
                 color += 8;
                 colors[row][col][(color / 256 + 1) % 3] = 0xFF -(color % 256);

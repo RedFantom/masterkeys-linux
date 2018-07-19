@@ -448,6 +448,11 @@ int libmk_enable_control(LibMK_Handle* handle) {
 
 int libmk_send_control_packet(LibMK_Handle* handle) {
     /** Build and send a packet to enable per-led control on a device */
+    unsigned char* disable = libmk_build_packet(
+        2, 0x41, 0x01);
+    int r = libmk_send_packet(handle, disable);
+    if (r != LIBMK_SUCCESS)
+        return r;
     unsigned char* packet = libmk_build_packet(
         2, HEADER_DEFAULT, OPCODE_ENABLE);
     return libmk_send_packet(handle, packet);
@@ -537,13 +542,13 @@ int libmk_set_effect(LibMK_Handle* handle, LibMK_Effect effect) {
     int r = libmk_send_packet(handle, packet);
     if (r != LIBMK_SUCCESS)
         return r;
-    r = libmk_send_flush_packet(handle);
-    if (r != LIBMK_SUCCESS)
-        return r;
     packet = libmk_build_packet(
         5, HEADER_DEFAULT | HEADER_EFFECT, OPCODE_EFFECT,
         0x00, 0x00, (unsigned char) effect);
-    return libmk_send_packet(handle, packet);
+    r = libmk_send_packet(handle, packet);
+    if (r != LIBMK_SUCCESS)
+        return r;
+    return libmk_send_flush_packet(handle);
 }
 
 
@@ -582,11 +587,13 @@ int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
         return LIBMK_ERR_TRANSFER;
     packet = libmk_build_packet(0);
     r = libusb_interrupt_transfer(
-        handle->handle, LIBMK_EP_IN | LIBUSB_ENDPOINT_IN,
-        packet, LIBMK_PACKET_SIZE, &t, LIBMK_PACKET_TIMEOUT);
-    if (r != 0 || t != LIBMK_PACKET_SIZE)
+            handle->handle, LIBMK_EP_IN | LIBUSB_ENDPOINT_IN,
+            packet, LIBMK_PACKET_SIZE, &t, LIBMK_PACKET_TIMEOUT);
+    if (r != LIBUSB_SUCCESS) {
+        result = LIBMK_SUCCESS;
+    } else if (t != LIBMK_PACKET_SIZE) {
         result = LIBMK_ERR_TRANSFER;
-    else if (packet[0] == HEADER_ERROR) {
+    } else if (packet[0] == HEADER_ERROR) {
         libmk_print_packet(packet);
         result = LIBMK_ERR_PROTOCOL;
     } else
@@ -652,6 +659,10 @@ int libmk_set_all_led_color(
 
     unsigned char offset;
     int packet, index, result;
+    
+    
+    unsigned char packet_colors[3] = {255, 0, 0};
+
 
     for (unsigned char r = 0; r < LIBMK_MAX_ROWS; r++)
         for (unsigned char c = 0; c < LIBMK_MAX_COLS; c++) {
@@ -668,8 +679,11 @@ int libmk_set_all_led_color(
             }
         }
 
+    int r = libmk_send_flush_packet(handle);
+    if (r != LIBMK_SUCCESS)
+        return r;
     for (short k = 0; k < LIBMK_ALL_LED_PCK_NUM; k++) {
-        int r = libmk_send_packet(handle, packets[k]);
+        r = libmk_send_packet(handle, packets[k]);
         if (r != LIBMK_SUCCESS)
             return r;
     }
@@ -744,9 +758,11 @@ int libmk_set_single_led(
         handle = DeviceHandle;
     if (handle == NULL)
         return LIBMK_ERR_DEV_NOT_SET;
-    libmk_send_control_packet(handle);
+    int result = libmk_send_control_packet(handle);
+    if (result != LIBMK_SUCCESS)
+        return result;
     unsigned char offset;
-    int result = libmk_get_offset(&offset, handle, row, col);
+    result = libmk_get_offset(&offset, handle, row, col);
     if (result != LIBMK_SUCCESS)
         return result;
     unsigned char* packet = libmk_build_packet(
