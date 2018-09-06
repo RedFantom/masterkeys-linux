@@ -659,10 +659,6 @@ int libmk_set_all_led_color(
 
     unsigned char offset;
     int packet, index, result;
-    
-    
-    unsigned char packet_colors[3] = {255, 0, 0};
-
 
     for (unsigned char r = 0; r < LIBMK_MAX_ROWS; r++)
         for (unsigned char c = 0; c < LIBMK_MAX_COLS; c++) {
