@@ -166,7 +166,7 @@ void* calculate_keyboard_color(void *void_ptr) {
 
 
 void* update_keyboard_color(void* ptr) {
-    unsigned char current_color[3] = {0};
+    unsigned char color[3] = {0}, prev[3] = {0};
     while (true) {
         pthread_mutex_lock(&exit_req_lock);
         if (exit_requested) {
@@ -176,14 +176,19 @@ void* update_keyboard_color(void* ptr) {
         pthread_mutex_unlock(&exit_req_lock);
 
         int diff;
+        bool equal = true;
         pthread_mutex_lock(&exit_req_lock);
         for (int i=0; i < 3; i++) {
-            diff = (int) target_color[i] - current_color[i];
-            current_color[i] += (unsigned char) (diff / 20.0);
+            diff = (int) target_color[i] - color[i];
+            prev[i] = color[i];
+            color[i] += (unsigned char) (diff / 20.0);
+            equal = (prev[i] == target_color[i]) && equal;
         }
         pthread_mutex_unlock(&exit_req_lock);
 
-        int r = libmk_set_full_color(NULL, current_color[0], current_color[1], current_color[2]);
+        if (equal)
+            continue;
+        int r = libmk_set_full_color(NULL, color[0], color[1], color[2]);
         if (r != LIBMK_SUCCESS)
             printf("LibMK Error: %d\n", r);
         struct timespec time;
