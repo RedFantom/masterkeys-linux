@@ -4,7 +4,8 @@
 cmake_minimum_required(VERSION 3.9)
 set(CMAKE_C_FLAGS "-std=c99")
 include(libmk/CMakeLists.txt)
-if(SKBUILD)  # The masterkeys package can only be built with scikit-build
+include(libmkc/CMakeLists.txt)
+if (SKBUILD)  # The masterkeys package can only be built with scikit-build
     include(masterkeys/CMakeLists.txt)
 else()
     include(examples/CMakeLists.txt)

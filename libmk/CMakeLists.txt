@@ -1,6 +1,7 @@
 # Author: RedFantom
 # License: GNU GPLv3
 # Copyright (c) 2018-2019 RedFantom
+cmake_minimum_required(VERSION 3.9)
 project(libmk VERSION 0.1.0 DESCRIPTION "MasterKeys RGB Library")
 include(FindLibUSB.cmake)
 

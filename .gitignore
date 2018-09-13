@@ -91,6 +91,7 @@ MANIFEST
 /record
 /main
 /ambilight
+/ctrl
 
 # Documentation
 /docs/_build
