@@ -78,12 +78,46 @@ typedef enum LibMK_Effect {
 } LibMK_Effect;
 
 
+typedef enum LibMK_ControlMode {
+    /** Describes keyboard control modes */
+    LIBMK_FIRMWARE_CTRL = 0x00,
+    LIBMK_EFFECT_CTRL = 0x01,
+    LIBMK_CUSTOM_CTRL = 0x02,
+    LIBMK_PROFILE_CTRL = 0x03,
+} LibMK_ControlMode;
+
+
+typedef enum LibMK_Layout {
+    LIBMK_LAYOUT_UNKNOWN = 0,
+    LIBMK_LAYOUT_ANSI = 1,
+    LIBMK_LAYOUT_ISO = 2,
+    LIBMK_LAYOUT_JP = 3
+} LibMK_Layout;
+
+
+typedef struct LibMK_Firmware {
+    /** Describes keyboard firmware details */
+    unsigned char major;
+    unsigned char minor;
+    unsigned char patch;
+    unsigned char layout;
+    char string[6];
+} LibMK_Firmware;
+
+
+typedef enum LibMK_Size {
+    LIBMK_L = 0,
+    LIBMK_M = 1,
+    LIBMK_S = 2
+} LibMK_Size;
+
+
 typedef enum LibMK_Model {
     /** Describes models available for use with this library
      *
      * The device indices are the same as the ones used in the official
      * Cooler Master (Windows-only) SDK. Not all these devices are
-     * supported. For white devices, the
+     * supported.
      */
     DEV_RGB_L = 0,
     DEV_RGB_M = 5,
@@ -122,6 +156,7 @@ typedef struct LibMK_Handle {
     int bVendor;
     int bDevice;
     int layout;
+    int size;
     libusb_device_handle* handle;
     bool open;
 } LibMK_Handle;
@@ -135,6 +170,7 @@ typedef struct LibMK_Effect_Details {
     unsigned char foreground[3];
     unsigned char background[3];
 } LibMK_Effect_Details;
+
 
 /** Library management and initialization */
 bool libmk_init();
@@ -150,7 +186,6 @@ LibMK_Device* libmk_create_device(
 void libmk_free_device(LibMK_Device* device);
 LibMK_Device* libmk_append_device(LibMK_Device* first, LibMK_Device* device);
 LibMK_Model libmk_ident_model(char* product);
-unsigned char libmk_get_layout(int bProduct);
 
 
 /** Handle management */
@@ -166,6 +201,7 @@ int libmk_claim_interface(LibMK_Handle* handle);
 int libmk_send_control_packet(LibMK_Handle* handle);
 int libmk_reset(LibMK_Handle* handle);
 int libmk_get_device_ident(LibMK_Handle* handle);
+int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
 
 
 /** Communication */

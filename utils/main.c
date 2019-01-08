@@ -30,6 +30,12 @@ int main(void) {
             continue;
         } else
             printf("  Enabled LED control.\n");
+        LibMK_Firmware* fw;
+        r = libmk_get_firmware_version(NULL, &fw);
+        if (r == LIBMK_SUCCESS) {
+            printf("    Keyboard firmware version: %s\n", fw->string);
+            printf("    Keyboard firmware layout: %d\n", fw->layout);
+        }
         r = libmk_set_full_color(NULL, 255, 255, 0);
         if (r != LIBMK_SUCCESS) {
             printf("    Setting full color failed.\n");
@@ -54,10 +60,13 @@ int main(void) {
                 colors[row][col][(color / 256) % 3] = 0xFF - (color % 128);
                 colors[row][col][(color / 256 + 2) % 3] = 0xFF - (color % 64);
             }
-        libmk_set_all_led_color(NULL, (unsigned char*) colors);
-
-        sleep(2);
-        printf("Enabling single LED.\n");
+        printf("  Enabling all LEDs.\n");
+        r = libmk_set_all_led_color(NULL, (unsigned char*) colors);
+        if (r != LIBMK_SUCCESS)
+            printf("  Failed to set all LEDs.\n");
+        sleep(4);
+        
+        printf("  Enabling single LED.\n");
         r = libmk_set_single_led(NULL, 0, 0, 255, 255, 0);
         sleep(2);
 

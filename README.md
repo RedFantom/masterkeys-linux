@@ -96,3 +96,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ```
+
+## Credits
+Part of the implementation of this library is based on the more
+extensive protocol description written by [`chmod222`](https://github.com/chmod222),
+available under the LGPLv3 license in [`libcmmk`](https://github.com/chmod222/libcmmk),
+which has the same goal as this project.
