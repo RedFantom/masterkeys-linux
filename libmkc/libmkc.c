@@ -9,23 +9,20 @@
 #include <time.h>
 
 
-void sleep(double t) {
+void sleep (double t) {
     /** Sleep for a specified amount of seconds */
     clock_t start = clock();
     while(((double) (clock() - start)) / CLOCKS_PER_SEC < t);
 }
 
 
-LibMK_Controller* libmk_create_controller(
-        LibMK_Device* identifier, LibMK_Model* model) {
+LibMK_Controller* libmk_create_controller(LibMK_Handle* handle) {
     /** Build a new LibMK Controller for a Device */
-    LibMK_Handle* device;
-    int r = libmk_create_handle(&device, identifier);
-    if (r != LIBMK_SUCCESS)
-        return NULL;
     LibMK_Controller* controller = (LibMK_Controller*) malloc(
         sizeof(LibMK_Controller));
-    controller->device = device;
+    if (controller == NULL)
+        return NULL;
+    controller->handle = handle;
     pthread_mutex_init(&controller->state_lock, NULL);
     pthread_mutex_init(&controller->exit_flag_lock, NULL);
     pthread_mutex_init(&controller->instr_lock, NULL);
@@ -60,7 +57,7 @@ LibMK_Result libmk_free_controller(LibMK_Controller* c) {
     pthread_mutex_destroy(&c->exit_flag_lock);
     pthread_mutex_destroy(&c->instr_lock);
     pthread_mutex_destroy(&c->error_lock);
-    int r = libmk_free_handle(c->device);
+    int r = libmk_free_handle(c->handle);
     if (r != LIBMK_SUCCESS)
         return (LibMK_Result) r;
     free(c);
@@ -71,7 +68,7 @@ LibMK_Result libmk_free_controller(LibMK_Controller* c) {
 
 LibMK_Result libmk_start_controller(LibMK_Controller* controller) {
     /** Start a LibMK_Controller in a new thread */
-    LibMK_Result r = (LibMK_Result) libmk_enable_control(controller->device);
+    LibMK_Result r = (LibMK_Result) libmk_enable_control(controller->handle);
     if (r != LIBMK_SUCCESS)
         return r;
     pthread_create(
@@ -94,7 +91,7 @@ void libmk_run_controller(LibMK_Controller* controller) {
         if (controller->instr == NULL)
             continue;
         LibMK_Result r = (LibMK_Result) libmk_exec_instruction(
-            controller->device, controller->instr);
+            controller->handle, controller->instr);
         if (r != LIBMK_SUCCESS) {
             libmk_set_controller_error(controller, r);
             break;
@@ -105,7 +102,7 @@ void libmk_run_controller(LibMK_Controller* controller) {
             libmk_free_instruction(old);
         }
     }
-    int r = libmk_disable_control(controller->device);
+    int r = libmk_disable_control(controller->handle);
     if (r != LIBMK_SUCCESS) {
         libmk_set_controller_error(controller, (LibMK_Result) r);
     }

@@ -40,7 +40,7 @@ typedef struct LibMK_Controller {
      *
      * Thread-safe state access is available through pthread mutexes.
     */
-    LibMK_Handle* device;
+    LibMK_Handle* handle;
     LibMK_Instruction* instr; // Linked list of instructions
     pthread_mutex_t instr_lock;
     pthread_t thread;
@@ -53,11 +53,10 @@ typedef struct LibMK_Controller {
 } LibMK_Controller;
 
 
-LibMK_Controller* libmk_create_controller(
-    LibMK_Device* identifier, LibMK_Model* model);
+LibMK_Controller* libmk_create_controller(LibMK_Handle* handle);
 LibMK_Result libmk_free_controller(LibMK_Controller* c);
 
-unsigned int libmk_schedule_instruction(
+unsigned int libmk_sched_instruction(
     LibMK_Controller* controller, LibMK_Instruction* instruction);
 LibMK_Result libmk_cancel_instruction(LibMK_Controller* c, unsigned int id);
 
@@ -70,7 +69,7 @@ void libmk_set_controller_error(LibMK_Controller* c, LibMK_Result r);
 LibMK_Instruction* libmk_create_instruction();
 LibMK_Instruction* libmk_create_instruction_full(unsigned char c[3]);
 LibMK_Instruction* libmk_create_instruction_all(
-    unsigned char c[LIBMK_MAX_ROWS][LIBMK_MAX_COLS][3])
+    unsigned char c[LIBMK_MAX_ROWS][LIBMK_MAX_COLS][3]);
 void libmk_free_instruction(LibMK_Instruction* i);
 
 

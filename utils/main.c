@@ -86,14 +86,14 @@ int main(void) {
             printf("Failed: %d.\n", r);
         else
             printf("Done.\n");
-    
+        
         printf("  Retrieving active profile... ");
         r = libmk_get_active_profile(NULL, &profile);
         if (r == LIBMK_SUCCESS)
             printf("Done: %d.\n", profile);
         else
             printf("Failed: %d.\n", r);
-
+        
         unsigned char colors[LIBMK_MAX_ROWS][LIBMK_MAX_COLS][3] = {0};
         for (short row=0; row < LIBMK_MAX_ROWS; row++)
             for (short col=0; col < LIBMK_MAX_COLS; col++) {
@@ -108,7 +108,7 @@ int main(void) {
         else
             printf("Done.\n");
         sleep(4);
-    
+        
         printf("  Saving to profile %d... ", profile);
         r = libmk_save_profile(NULL);
         if (r == LIBMK_SUCCESS)

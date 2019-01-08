@@ -7,8 +7,8 @@ include(libmk/CMakeLists.txt)
 include(libmkc/CMakeLists.txt)
 if (SKBUILD)  # The masterkeys package can only be built with scikit-build
     include(masterkeys/CMakeLists.txt)
-else()
-    include(examples/CMakeLists.txt)
-    include(utils/CMakeLists.txt)
 endif()
+include(examples/CMakeLists.txt)
+include(utils/CMakeLists.txt)
+
 include(GNUInstallDirs)
