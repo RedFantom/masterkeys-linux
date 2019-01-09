@@ -31,9 +31,17 @@ offsets.
 
 The current list of supported devices includes:
 - MasterKeys Pro L RGB ANSI
+- MasterKeys Pro S RGB ANSI (untested)
+- MasterKeys Pro L RGB ISO (untested)
 
 If you would like for your device to be supported as well, please run 
 the `record` executable.
+
+Keyboards with only monochrome lighting may use a different protocol and
+thus they would probably require more modifications than just adding a
+key layout matrix. Do not hesitate to open an issue if you have a
+monochrome keyboard, would like to see support and are willing to do
+some USB packet sniffing.
 
 ## Compiling and installing
 To be able to compile and install any of the targets in this library,
