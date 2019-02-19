@@ -50,6 +50,7 @@ typedef enum LibMK_Result {
     LIBMK_ERR_TRANSFER = -10, ///< Failed to transfer data to or from device
     LIBMK_ERR_DESCR = -11, ///< Failed to get libusb device descriptor
     LIBMK_ERR_PROTOCOL = -13, ///< Keyboard interaction protocol error
+    LIBMK_ERR_INV_ARGS = -14, ///< Invalid arguments passed by caller
 } LibMK_Result;
 
 
@@ -419,6 +420,45 @@ int libmk_set_single_led(
 int libmk_get_offset(
     unsigned char* offset, LibMK_Handle* handle,
     unsigned char row, unsigned char col);
+
+/** @brief Set the profile active on the device
+ *
+ * @param handle: LibMK_Handle for the device to set the profile on. If
+ *    NULL the global device handle is used.
+ * @param profile: Number of the profile to activate.
+ * @returns LibMK_Result result code
+ *
+ * The MasterKeys series of devices supports four individual lighting
+ * profiles to which settings can be saved. A profile is activated by
+ * changing the control mode and then activating the new profile. Any
+ * changes applied to the lighting of the keyboard are lost when
+ * changing the control mode to profile control.
+ */
+int libmk_set_active_profile(LibMK_Handle* handle, unsigned char profile);
+
+/** @brief Retrieve the number of the active profile on the device
+ *
+ * @param handle: LibMK_Handle for the device to get the number of the
+ *    active profile from. If NULL the global device handle is used.
+ * @param profile: Pointer to the unsigned char to store the number of
+ *    the profile in.
+ * @returns LibMK_Result result code
+ */
+int libmk_get_active_profile(LibMK_Handle* handle, unsigned char* profile);
+
+/** @brief Save the current lighting settings to the active profile
+ *
+ * @param handle: LibMK_Handle for the device to save the changes to. If
+ *    NULL the global device handle is used.
+ * @returns LibMK_Result result code
+ *
+ * Saves the lighting settings to the profile that is returned by
+ * libmk_get_active_profile. The changes persist after releasing control
+ * of the keyboard, and even after power-cycling the keyboard. The
+ * previous lighting configuration in the profile is deleted and
+ * non-recoverable.
+ */
+int libmk_save_profile(LibMK_Handle* handle);
 
 /** Debugging purposes */
 void libmk_print_packet(unsigned char* packet);

@@ -768,3 +768,40 @@ int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw) {
     (*fw)->layout = p[0x04] & 0x0F;
     return LIBMK_SUCCESS;
 }
+
+
+int libmk_save_profile(LibMK_Handle* handle) {
+     if (handle == NULL)
+         handle = DeviceHandle;
+     if (handle == NULL)
+         return LIBMK_ERR_DEV_NOT_SET;
+     unsigned char* p = libmk_build_packet(2, 0x55, 0x50);
+     return libmk_send_packet(handle, p);
+}
+
+
+int libmk_set_active_profile(LibMK_Handle* handle, unsigned char profile) {
+    if (handle == NULL)
+        handle = DeviceHandle;
+    if (handle == NULL)
+        return LIBMK_ERR_DEV_NOT_SET;
+    if (!(1 <= profile <= 4))
+        return LIBMK_ERR_INVALID_ARG;
+    unsigned char* p = libmk_build_packet(4, 0x51, 0x00, 0x00, profile);
+    return libmk_send_packet(handle, p);
+}
+
+
+int libmk_get_active_profile(LibMK_Handle* handle, unsigned char* profile) {
+    if (handle == NULL)
+        handle = DeviceHandle;
+    if (handle == NULL)
+        return LIBMK_ERR_DEV_NOT_SET;
+    unsigned char* p = libmk_build_packet(1, 0x52);
+    int r = libmk_exch_packet(handle, p);
+    if (r != LIBMK_SUCCESS)
+        return r;
+    *profile = p[3];
+    free(p);
+    return LIBMK_SUCCESS;
+}
