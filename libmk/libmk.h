@@ -325,6 +325,7 @@ int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
 int libmk_set_active_profile(LibMK_Handle* handle, char profile);
 int libmk_get_active_profile(LibMK_Handle* handle, char* profile);
 int libmk_save_profile(LibMK_Handle* handle);
+<<<<<<< HEAD
 >>>>>>> ce36524... Fix libmk_create_handle
 
 /** @brief Retrieve details on the firmware version of the device
@@ -336,6 +337,9 @@ int libmk_save_profile(LibMK_Handle* handle);
  * @returns LibMK_Result result code, NULL or LibMK_Firmware* in fw
  */
 int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
+=======
+int libmk_set_control_mode(LibMK_Handle* handle, LibMK_ControlMode mode);
+>>>>>>> 748c903... Fix errors during profile control
 
 /** @brief Send a single packet and verify the response
  *
@@ -351,6 +355,11 @@ int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
  * pointer.
  */
 int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet);
+<<<<<<< HEAD
+=======
+int libmk_send_recv_packet(LibMK_Handle* handle, unsigned char* packet, bool r);
+unsigned char* libmk_build_packet(unsigned char predef, ...);
+>>>>>>> 748c903... Fix errors during profile control
 
 /** @brief Exchange a single packet with the keyboard
  *
