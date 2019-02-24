@@ -234,6 +234,42 @@ static PyObject* masterkeys_get_device_ident(PyObject* self, PyObject* args) {
 }
 
 
+static PyObject* masterkeys_get_active_profile(PyObject* self, PyObject* args) {
+    /** Return the active profile on the keyboard */
+    char profile;
+    int r = libmk_get_active_profile(NULL, &profile);
+    if (r != LIBMK_SUCCESS)
+        return NULL;
+    return PyInt_FromLong(profile);
+}
+
+
+static PyObject* masterkeys_set_active_profile(PyObject* self, PyObject* args) {
+    /** Set the active profile on the keyboard */
+    char profile;
+    if (!PyArg_ParseTuple(args, "i", &profile))
+        return NULL;
+    int r = libmk_set_active_profile(NULL, profile);
+    return PyInt_FromLong(r);
+}
+
+
+static PyObject* masterkeys_save_profile(PyObject* self, PyObject* args) {
+    /** Save changes made to the active profile */
+    int r = libmk_save_profile(NULL);
+    return PyInt_FromLong(r);
+}
+
+
+static PyObject* masterkeys_set_control_mode(PyObject* self, PyObject* args) {
+    /** Set the control mode on the keyboard */
+    LibMK_ControlMode mode;
+    if (!PyArg_ParseTuple(args, "i", &mode))
+        return NULL;
+    return PyInt_FromLong(libmk_set_control_mode(NULL, mode));
+}
+
+
 static struct PyMethodDef masterkeys_funcs[] = {
     {
         "detect_devices",
