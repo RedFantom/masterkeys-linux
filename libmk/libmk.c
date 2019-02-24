@@ -174,7 +174,7 @@ bool libmk_init(void) {
 #ifdef LIBMK_USB_DEBUG
     libusb_set_debug(Context, LIBUSB_LOG_LEVEL_DEBUG);
 #endif
-    return (result == 0);
+    return (result == LIBUSB_SUCCESS);
 }
 
 
@@ -330,13 +330,6 @@ int libmk_create_handle(LibMK_Handle** handle, LibMK_Device* device) {
         libusb_close((*handle)->handle);
         return LIBMK_ERR_UNKNOWN_LAYOUT;
     }
-    LibMK_Firmware* fw;
-    r = libmk_get_firmware_version(*handle, &fw);
-    if (r != LIBMK_SUCCESS) {
-        libusb_close((*handle)->handle);
-        return r;
-    }
-    (*handle)->layout = fw->layout;
     return LIBMK_SUCCESS;
 }
 
@@ -453,7 +446,21 @@ int libmk_enable_control(LibMK_Handle* handle) {
         return LIBMK_ERR_IFACE_CLAIM_FAILED;
 
     // Send the enable control packet to the keyboard
+<<<<<<< HEAD
     return libmk_send_control_packet(handle);
+=======
+    r = libmk_send_control_packet(handle);
+    if (r != LIBMK_SUCCESS)
+        return LIBMK_ERR_SEND;
+    LibMK_Firmware* fw;
+    r = libmk_get_firmware_version(handle, &fw);
+    if (r != LIBMK_SUCCESS) {
+        libusb_close(handle->handle);
+        return r;
+    }
+    handle->layout = fw->layout;
+    return LIBMK_SUCCESS;
+>>>>>>> ce36524... Fix libmk_create_handle
 }
 
 
@@ -567,6 +574,9 @@ int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
         handle->handle, LIBMK_EP_OUT | LIBUSB_ENDPOINT_OUT,
         packet, LIBMK_PACKET_SIZE, &t,
         LIBMK_PACKET_TIMEOUT);
+#ifdef LIBMK_DEBUG
+    libmk_print_packet(packet, "Sent");
+#endif // LIBMK_DEBUG
     free(packet);
     if (r != 0 || t != LIBMK_PACKET_SIZE)
         return LIBMK_ERR_TRANSFER;
@@ -574,12 +584,15 @@ int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
     r = libusb_interrupt_transfer(
             handle->handle, LIBMK_EP_IN | LIBUSB_ENDPOINT_IN,
             packet, LIBMK_PACKET_SIZE, &t, LIBMK_PACKET_TIMEOUT);
+#ifdef LIBMK_DEBUG
+    libmk_print_packet(packet, "Response");
+#endif // LIBMK_DEBUG
     if (r != LIBUSB_SUCCESS) {
         result = LIBMK_ERR_TRANSFER;
     } else if (t != LIBMK_PACKET_SIZE) {
         result = LIBMK_ERR_TRANSFER;
     } else if (packet[0] == HEADER_ERROR) {
-        libmk_print_packet(packet);
+        libmk_print_packet(packet, "Error response");
         result = LIBMK_ERR_PROTOCOL;
     } else
         result = LIBMK_SUCCESS;
@@ -681,9 +694,14 @@ int libmk_set_all_led_color(LibMK_Handle* handle, unsigned char* colors) {
 }
 
 
+<<<<<<< HEAD
 inline void libmk_print_packet(unsigned char* packet) {
+=======
+inline void libmk_print_packet(unsigned char* packet, char* label) {
+    /** Pretty print a keyboard communication packet */
+>>>>>>> ce36524... Fix libmk_create_handle
 #ifdef LIBMK_DEBUG
-    printf("Packet:\n");
+    printf("Packet: %s\n", label);
     for (unsigned char j = 0; j < LIBMK_PACKET_SIZE; j++) {
         printf("%02x ", packet[j]);
         if ((j + 1) % 16 == 0) {
@@ -780,7 +798,7 @@ int libmk_save_profile(LibMK_Handle* handle) {
 }
 
 
-int libmk_set_active_profile(LibMK_Handle* handle, unsigned char profile) {
+int libmk_set_active_profile(LibMK_Handle* handle, char profile) {
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -792,7 +810,7 @@ int libmk_set_active_profile(LibMK_Handle* handle, unsigned char profile) {
 }
 
 
-int libmk_get_active_profile(LibMK_Handle* handle, unsigned char* profile) {
+int libmk_get_active_profile(LibMK_Handle* handle, char* profile) {
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)

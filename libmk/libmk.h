@@ -143,6 +143,19 @@ typedef struct LibMK_Device {
 } LibMK_Device;
 
 
+/** @brief Array of strings representing the supported models */
+const char* LIBMK_MODEL_STRINGS[] = {
+    "MasterKeys Pro L RGB", // 0
+    "MasterKeys Pro S RGB", // 1
+    "MasterKeys Pro L White", // 2
+    "MasterKeys Pro M White", // 3
+    "Unknown Model", // 4
+    "MasterKeys Pro M RGB", // 5
+    "Unknown Model", // 6
+    "MasterKeys Pro S White",
+};
+
+
 /** @brief Struct describing an opened supported device
  *
  * Result of libmk_set_device(LibMK_Model, LibMK_Handle**). Contains all
@@ -306,6 +319,13 @@ int libmk_reset(LibMK_Handle* handle);
 
 /** @brief Internal function. Return the bDevice USB descriptor property */
 int libmk_get_device_ident(LibMK_Handle* handle);
+<<<<<<< HEAD
+=======
+int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
+int libmk_set_active_profile(LibMK_Handle* handle, char profile);
+int libmk_get_active_profile(LibMK_Handle* handle, char* profile);
+int libmk_save_profile(LibMK_Handle* handle);
+>>>>>>> ce36524... Fix libmk_create_handle
 
 /** @brief Retrieve details on the firmware version of the device
  *
@@ -434,7 +454,7 @@ int libmk_get_offset(
  * changes applied to the lighting of the keyboard are lost when
  * changing the control mode to profile control.
  */
-int libmk_set_active_profile(LibMK_Handle* handle, unsigned char profile);
+int libmk_set_active_profile(LibMK_Handle* handle, char profile);
 
 /** @brief Retrieve the number of the active profile on the device
  *
@@ -444,7 +464,7 @@ int libmk_set_active_profile(LibMK_Handle* handle, unsigned char profile);
  *    the profile in.
  * @returns LibMK_Result result code
  */
-int libmk_get_active_profile(LibMK_Handle* handle, unsigned char* profile);
+int libmk_get_active_profile(LibMK_Handle* handle, char* profile);
 
 /** @brief Save the current lighting settings to the active profile
  *
@@ -461,4 +481,4 @@ int libmk_get_active_profile(LibMK_Handle* handle, unsigned char* profile);
 int libmk_save_profile(LibMK_Handle* handle);
 
 /** Debugging purposes */
-void libmk_print_packet(unsigned char* packet);
+void libmk_print_packet(unsigned char* packet, char* label);
