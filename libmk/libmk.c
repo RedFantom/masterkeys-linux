@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LIBMK_DEBUG
+// #define LIBMK_DEBUG
 // #define LIBMK_USB_DEBUG
 
 #ifndef LIBMK_DEBUG
@@ -446,21 +446,7 @@ int libmk_enable_control(LibMK_Handle* handle) {
         return LIBMK_ERR_IFACE_CLAIM_FAILED;
 
     // Send the enable control packet to the keyboard
-<<<<<<< HEAD
     return libmk_send_control_packet(handle);
-=======
-    r = libmk_send_control_packet(handle);
-    if (r != LIBMK_SUCCESS)
-        return LIBMK_ERR_SEND;
-    LibMK_Firmware* fw;
-    r = libmk_get_firmware_version(handle, &fw);
-    if (r != LIBMK_SUCCESS) {
-        libusb_close(handle->handle);
-        return r;
-    }
-    handle->layout = fw->layout;
-    return LIBMK_SUCCESS;
->>>>>>> ce36524... Fix libmk_create_handle
 }
 
 
@@ -472,12 +458,6 @@ int libmk_send_control_packet(LibMK_Handle* handle) {
         return r;
     unsigned char* packet = libmk_build_packet(
         2, HEADER_DEFAULT, OPCODE_ENABLE);
-    return libmk_send_packet(handle, packet);
-}
-
-
-int libmk_send_flush_packet(LibMK_Handle* handle) {
-    unsigned char* packet = libmk_build_packet(2, 0x50, 0x55);
     return libmk_send_packet(handle, packet);
 }
 
@@ -547,10 +527,7 @@ int libmk_set_effect(LibMK_Handle* handle, LibMK_Effect effect) {
     packet = libmk_build_packet(
         5, HEADER_DEFAULT | HEADER_EFFECT, OPCODE_EFFECT,
         0x00, 0x00, (unsigned char) effect);
-    r = libmk_send_packet(handle, packet);
-    if (r != LIBMK_SUCCESS)
-        return r;
-    return libmk_send_flush_packet(handle);
+    return libmk_send_packet(handle, packet);
 }
 
 
@@ -680,26 +657,17 @@ int libmk_set_all_led_color(LibMK_Handle* handle, unsigned char* colors) {
                     (r * LIBMK_MAX_COLS + c) * 3 + o];
             }
         }
-
-    int r = libmk_send_flush_packet(handle);
-    if (r != LIBMK_SUCCESS)
-        return r;
+        
     for (short k = 0; k < LIBMK_ALL_LED_PCK_NUM; k++) {
-        r = libmk_send_packet(handle, packets[k]);
+        int r = libmk_send_packet(handle, packets[k]);
         if (r != LIBMK_SUCCESS)
             return r;
     }
-    unsigned char* flush = libmk_build_packet(2, 0x50, 0x55);
-    return libmk_send_packet(handle, flush);
+    return LIBMK_SUCCESS;
 }
 
 
-<<<<<<< HEAD
-inline void libmk_print_packet(unsigned char* packet) {
-=======
 inline void libmk_print_packet(unsigned char* packet, char* label) {
-    /** Pretty print a keyboard communication packet */
->>>>>>> ce36524... Fix libmk_create_handle
 #ifdef LIBMK_DEBUG
     printf("Packet: %s\n", label);
     for (unsigned char j = 0; j < LIBMK_PACKET_SIZE; j++) {
