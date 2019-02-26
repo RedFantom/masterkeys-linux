@@ -246,7 +246,7 @@ static PyObject* masterkeys_get_active_profile(PyObject* self, PyObject* args) {
 
 static PyObject* masterkeys_set_active_profile(PyObject* self, PyObject* args) {
     /** Set the active profile on the keyboard */
-    char profile;
+    long profile;
     if (!PyArg_ParseTuple(args, "i", &profile))
         return NULL;
     int r = libmk_set_active_profile(NULL, profile);
@@ -343,7 +343,7 @@ static struct PyMethodDef masterkeys_funcs[] = {
         masterkeys_set_control_mode,
         METH_VARARGS,
         "Set the control mode of the keyboard"
-    },{NULL, NULL, 0, NULL}
+    }, {NULL, NULL, 0, NULL}
 };
 
 
