@@ -127,6 +127,7 @@ typedef enum LibMK_Model {
 } LibMK_Model;
 
 
+<<<<<<< HEAD
 /** @brief Struct describing a supported USB device
  *
  * This struct may be used as a linked list. Holds information required
@@ -144,17 +145,7 @@ typedef struct LibMK_Device {
 
 
 /** @brief Array of strings representing the supported models */
-const char* LIBMK_MODEL_STRINGS[] = {
-    "MasterKeys Pro L RGB", // 0
-    "MasterKeys Pro S RGB", // 1
-    "MasterKeys Pro L White", // 2
-    "MasterKeys Pro M White", // 3
-    "Unknown Model", // 4
-    "MasterKeys Pro M RGB", // 5
-    "Unknown Model", // 6
-    "MasterKeys Pro S White",
-};
-
+const char* LIBMK_MODEL_STRINGS[];
 
 /** @brief Struct describing an opened supported device
  *
@@ -319,14 +310,6 @@ int libmk_reset(LibMK_Handle* handle);
 
 /** @brief Internal function. Return the bDevice USB descriptor property */
 int libmk_get_device_ident(LibMK_Handle* handle);
-<<<<<<< HEAD
-=======
-int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
-int libmk_set_active_profile(LibMK_Handle* handle, char profile);
-int libmk_get_active_profile(LibMK_Handle* handle, char* profile);
-int libmk_save_profile(LibMK_Handle* handle);
-<<<<<<< HEAD
->>>>>>> ce36524... Fix libmk_create_handle
 
 /** @brief Retrieve details on the firmware version of the device
  *
@@ -337,9 +320,9 @@ int libmk_save_profile(LibMK_Handle* handle);
  * @returns LibMK_Result result code, NULL or LibMK_Firmware* in fw
  */
 int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
-=======
+
+
 int libmk_set_control_mode(LibMK_Handle* handle, LibMK_ControlMode mode);
->>>>>>> 748c903... Fix errors during profile control
 
 /** @brief Send a single packet and verify the response
  *
@@ -355,11 +338,7 @@ int libmk_set_control_mode(LibMK_Handle* handle, LibMK_ControlMode mode);
  * pointer.
  */
 int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet);
-<<<<<<< HEAD
-=======
-int libmk_send_recv_packet(LibMK_Handle* handle, unsigned char* packet, bool r);
-unsigned char* libmk_build_packet(unsigned char predef, ...);
->>>>>>> 748c903... Fix errors during profile control
+
 
 /** @brief Exchange a single packet with the keyboard
  *
@@ -373,14 +352,6 @@ unsigned char* libmk_build_packet(unsigned char predef, ...);
  * the response as an error response.
  */
 int libmk_exch_packet(LibMK_Handle* handle, unsigned char* packet);
-
-/** @brief Build a packet using the given data
- *
- * @param predef: Amount of predefined bytes in the packet
- * @param ...: bytes that are predefined, starting from index 0
- * @returns Pointer to the allocated array of bytes
- */
-unsigned char* libmk_build_packet(unsigned char predef, ...);
 
 /** @brief Set effect to be active on keyboard
  *
@@ -488,6 +459,30 @@ int libmk_get_active_profile(LibMK_Handle* handle, char* profile);
  * non-recoverable.
  */
 int libmk_save_profile(LibMK_Handle* handle);
+
+/** @brief Send a packet specifying whether to expect a response
+ *
+ * @param handle: LibMK_Handle of the device to send the packet to. If
+ *    NULL the global device handle is used.
+ * @param packet: Pointer to array of packet to send.
+ * @param r: Whether to expect a response. If ``false``, the function
+ *    still attempts to read a response to make sure that the buffer is
+ *    empty. If ``true``, performs protocol error checks and yields an
+ *    error if no response was received.
+ * @returns LibMK_Result result code
+ */
+int libmk_send_recv_packet(LibMK_Handle* handle, unsigned char* packet, bool r);
+
+/** @brief Build a new packet of data that can be sent to keyboard
+ *
+ * @param predef: Amount of bytes given in the variable arguments
+ * @param ...: Bytes to from index zero of the packet. The amount of
+ *    bytes given must be equal to the amount specified by ``predef``,
+ *    otherwise this function will segfault.
+ * @returns Pointer to the allocated packet with the set bytes. NULL if
+ *    no memory could be allocated.
+ */
+unsigned char* libmk_build_packet(unsigned char predef, ...);
 
 /** Debugging purposes */
 void libmk_print_packet(unsigned char* packet, char* label);

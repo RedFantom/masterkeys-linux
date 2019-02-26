@@ -323,7 +323,27 @@ static struct PyMethodDef masterkeys_funcs[] = {
         masterkeys_get_device_ident,
         METH_NOARGS,
         "Return the bDevice USB descriptor value"
-    }, {NULL, NULL, 0, NULL}
+    }, {
+        "get_active_profile",
+        masterkeys_get_active_profile,
+        METH_VARARGS,
+        "Return the number of the active profile"
+    }, {
+        "set_active_profile",
+        masterkeys_set_active_profile,
+        METH_VARARGS,
+        "Set the active profile on the keyboard"
+    }, {
+       "save_profile",
+       masterkeys_save_profile,
+       METH_VARARGS,
+       "Save the changes made to the active profile"
+    }, {
+        "set_control_mode",
+        masterkeys_set_control_mode,
+        METH_VARARGS,
+        "Set the control mode of the keyboard"
+    },{NULL, NULL, 0, NULL}
 };
 
 

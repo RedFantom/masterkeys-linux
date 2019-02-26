@@ -78,6 +78,13 @@ class Model:
     MODEL_UNKNOWN = -3
 
 
+class ControlMode:
+    FIRMWARE_CTRL = 0x00
+    EFFECT_CTRL = 0x01
+    CUSTOM_CTRL = 0x02
+    PROFILE_CTRL = 0x03
+
+
 MODEL_STRINGS = {
     0: "MasterKeys Pro L RGB",
     5: "MasterKeys Pro M RGB",
@@ -111,9 +118,9 @@ def set_device(model):
         is supported in the Python library. Only the first found device
         of the specified model is controlled.
     :type model: int
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
-    :raises: TypeError upon invalid argument type
+    :raises: ``TypeError`` upon invalid argument type
     """
     return _mk.set_device(model)
 
@@ -123,7 +130,7 @@ def enable_control():
     """
     Enable control on the device that has been set
 
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
     """
     return _mk.enable_control()
@@ -134,7 +141,7 @@ def disable_control():
     """
     Disable control on the device that has been set and is controlled
 
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
     """
     return _mk.disable_control()
@@ -145,11 +152,11 @@ def set_effect(effect):
     """
     Set the effect to be active on the controlled keyboard
 
-    :param effect: Effect number to set to be active
+    :param effect: Effect number to set to be active (:class:`.Effect`)
     :type effect: int
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
-    :raises: TypeError upon invalid argument type
+    :raises: ``TypeError`` upon invalid argument type
     """
     return _mk.set_effect(effect)
 
@@ -162,10 +169,11 @@ def set_all_led_color(layout):
     :param layout: List of lists of color tuples such as created by
         build_layout_list()
     :type layout: List[List[Tuple[int, int, int], ...], ...]
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
-    :raises: ValueError if the wrong amount of elements is in the list
-    :raises: TypeError if invalid argument type (any element)
+    :raises: ``ValueError`` if the wrong amount of elements is in the
+        list
+    :raises: ``TypeError`` if invalid argument type (any element)
     """
     return _mk.set_all_led_color(layout)
 
@@ -181,7 +189,7 @@ def set_full_led_color(r, g, b):
     :type g: int
     :param b: blue color byte
     :type b: int
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
     """
     return _mk.set_full_led_color(r, g, b)
@@ -202,9 +210,9 @@ def set_ind_led_color(row, col, r, g, b):
     :type g: int
     :param b: blue color byte
     :type b: int
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
-    :raises: TypeError upon invalid argument type
+    :raises: ``TypeError`` upon invalid argument type
     """
     return _mk.set_ind_led_color(row, col, r, g, b)
 
@@ -255,7 +263,7 @@ def set_effect_details(effect, direction=0, speed=0x60, amount=0x00,
     For more details about the parameters, please see the libmk
     documentation.
 
-    :param effect: Effect number
+    :param effect: Effect number (:class:`.Effect`)
     :type effect: int
     :param direction: Direction of the animation of the effect
     :type direction: int
@@ -267,8 +275,57 @@ def set_effect_details(effect, direction=0, speed=0x60, amount=0x00,
     :type foreground: Tuple[int, int, int]
     :param background: Background color of the effect
     :type background: Tuple[int, int, int]
-    :return: Result code
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
     """
     return _mk.set_effect_details(
         effect, direction, speed, amount, foreground, background)
+
+
+def get_active_profile():
+    # type: () -> int
+    """
+    Return the number of the profile active on the keyboard
+
+    :return: Result code (:class:`.ResultCode`) or profile number
+    :rtype: int
+    """
+    return _mk.get_active_profile()
+
+
+def set_active_profile(profile):
+    # type: (int) -> int
+    """
+    Activate a profile on the keyboard
+
+    :param profile: Number of profile to activate
+    :type profile: int
+    :return: Result code (:class:`.ResultCode`)
+    :rtype: int
+    """
+    return _mk.set_active_profile(profile)
+
+
+def save_profile():
+    # type: () -> int
+    """
+    Save the changes made to the lighting to the active profile
+
+    :return: Result code (:class:`.ResultCode`)
+    :rtype: int
+    """
+    return _mk.save_profile()
+
+
+def set_control_mode(mode):
+    # type: (int) -> int
+    """
+    Change the control mode of the keyboard manually
+
+    :param mode: New control mode to set (:class:`.ControlMode`)
+    :type mode: int  
+    :return: Result code (:class:`.ResultCode`)
+    :rtype: int
+    """
+    return _mk.set_control_mode(mode)
+

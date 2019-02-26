@@ -1,5 +1,4 @@
-/**
- * Author: RedFantom
+/** Author: RedFantom
  * License: GNU GPLv3
  * Copyright (c) 2018-2019 RedFantom
 */
@@ -57,6 +56,17 @@ const unsigned int ISO[] =
 
 const unsigned char LAYOUT_ANSI = 0;
 const unsigned char LAYOUT_ISO = 1;
+
+const char* LIBMK_MODEL_STRINGS[] = {
+    "MasterKeys Pro L RGB",
+    "MasterKeys Pro S RGB",
+    "MasterKeys Pro L White",
+    "MasterKeys Pro M White",
+    "Unknown Model",
+    "MasterKeys Pro M RGB",
+    "Unknown Model",
+    "MasterKeys Pro S White",
+};
 
 /** Layout matrices
  *
@@ -165,6 +175,18 @@ const unsigned char LIBMK_LAYOUT[2][3][LIBMK_MAX_ROWS][LIBMK_MAX_COLS] = {
     // TODO: If required, Japanese layouts may be added at index 2 of this array
     // TODO: so that it remains compatible with the LibMK_Layout enum and the
     // TODO: firmware defined layout
+};
+
+
+const char* LIBMK_MODEL_STRINGS[] = {
+    "MasterKeys Pro L RGB", // 0
+    "MasterKeys Pro S RGB", // 1
+    "MasterKeys Pro L White", // 2
+    "MasterKeys Pro M White", // 3
+    "Unknown Model", // 4
+    "MasterKeys Pro M RGB", // 5
+    "Unknown Model", // 6
+    "MasterKeys Pro S White",
 };
 
 
