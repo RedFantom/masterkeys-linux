@@ -1,7 +1,7 @@
 /**
  * Author: RedFantom
  * License: GNU GPLv3
- * Copyright (c) 2018 RedFantom
+ * Copyright (c) 2018-2019 RedFantom
 */
 #include "../libmk/libmk.h"
 #include <stdio.h>

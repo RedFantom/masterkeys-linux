@@ -70,12 +70,12 @@ layout.*
 /_skbuild
 
 # CMake
-*.cmake
 CMakeCache.txt
 /CMakeTmp
 *CMakeTmp*
 *CMakeFiles*
 *CMakeCache.txt
+*cmake_install.cmake
 install_manifest.txt
 
 # Python packages
@@ -89,3 +89,8 @@ MANIFEST
 /record
 /main
 /ambilight
+
+# Documentation
+/docs/_build
+/docs/html
+/docs/_doctrees
