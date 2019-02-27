@@ -278,7 +278,7 @@ static struct PyMethodDef masterkeys_funcs[] = {
        METH_VARARGS,
        "Set the color of a single LED on the controlled device"
     }, {
-        "_set_effect_details",
+        "set_effect_details",
         masterkeys_set_effect_details,
         METH_VARARGS,
         "Set the effect on the keyboard with specific arguments"

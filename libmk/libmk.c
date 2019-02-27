@@ -625,7 +625,7 @@ unsigned char* libmk_build_packet(unsigned char predef, ...) {
 }
 
 
-    /** USB Reset the device in the device handle */
+int libmk_reset(LibMK_Handle* handle) {
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)

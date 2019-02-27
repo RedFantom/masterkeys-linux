@@ -1,7 +1,9 @@
-libmk
-=====
+Documentation
+=============
 
 .. toctree::
 
-   description
-   documentation/index
+   consts/index
+   enums/index
+   funcs/index
+   structs/index

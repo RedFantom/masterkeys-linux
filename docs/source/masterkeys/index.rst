@@ -1,4 +1,6 @@
-masterkeys - libmk Python wrapper
-=================================
+masterkeys
+==========
 
-
+.. automodule:: masterkeys
+   :members:
+   :undoc-members:
