@@ -1,5 +1,5 @@
-Enumerations
-============
+Enums
+=====
 
 .. toctree::
 
