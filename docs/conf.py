@@ -25,8 +25,8 @@ import subprocess
 import os
 
 
-read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
-if read_the_docs_build:
+rtd_build = os.environ.get('READTHEDOCS', None) == 'True'
+if rtd_build:
     subprocess.call("doxygen doxygen.conf", shell=True)
 
 # -- General configuration ------------------------------------------------
@@ -174,6 +174,6 @@ texinfo_documents = [
 
 # -- Options for Breathe Extension ----------------------------------------
 breathe_projects = {
-    "libmk": "../doxygen/xml"
+    "libmk": "../doxygen/xml" if not rtd_build else "doxygen/xml"
 }
 breathe_default_project = "libmk"
