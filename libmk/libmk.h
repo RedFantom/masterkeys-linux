@@ -2,6 +2,13 @@
  * Author: RedFantom
  * License: GNU GPLv3
  * Copyright (c) 2018-2019 RedFantom
+ *
+ * @file libmk.h
+ * @author RedFantom
+ * @date 2018-2019
+ * @brief Header file of libmk
+ *
+ * Contains all the enums, macro and function definitions for libmk
 */
 #include "libusb.h"
 #include <string.h>
@@ -23,80 +30,68 @@
 #define LIBMK_ALL_LED_PCK_NUM 8
 #define LIBMK_ALL_LED_PER_PCK 16
 
-
+/// @brief Error codes used within libmk
 typedef enum LibMK_Result {
-    /** Describes error codes that are used in libmk */
-    // Success codes
-    LIBMK_SUCCESS = 0,
-    // Device errors
-    LIBMK_ERR_INVALID_DEV = 1,
-    LIBMK_ERR_DEV_NOT_CONNECTED = 2,
-    LIBMK_ERR_DEV_NOT_SET = 3,
-    LIBMK_ERR_UNKNOWN_LAYOUT = 14,
-    LIBMK_ERR_DEV_NOT_CLOSED = 15,
-    LIBMK_ERR_DEV_RESET_FAILED = 16,
-    // Interface errors
-    LIBMK_ERR_IFACE_CLAIM_FAILED = 4,
-    LIBMK_ERR_IFACE_RELEASE_FAILED = 5,
-    LIBMK_ERR_DEV_CLOSE_FAILED = 6,
-    LIBMK_ERR_DEV_OPEN_FAILED = 7,
-    // Kernel driver errors
-    LIBMK_ERR_KERNEL_DRIVER = 8,
-    // Communication errors
-    LIBMK_ERR_DEV_LIST = 9,
-    LIBMK_ERR_TRANSFER = 10,
-    LIBMK_ERR_DESCR = 11,
-    LIBMK_ERR_SEND = 12,
-    // Protocol errors
-    LIBMK_ERR_PROTOCOL = 13,
+    LIBMK_SUCCESS = 0, ///< The one and only success code
+    LIBMK_ERR_INVALID_DEV = 1, ///< Invalid device specified
+    LIBMK_ERR_DEV_NOT_CONNECTED = 2, ///< Device specified not connected
+    LIBMK_ERR_DEV_NOT_SET = 3, ///< Device has not been set
+    LIBMK_ERR_UNKNOWN_LAYOUT = 14, ///< Device has unknown layout
+    LIBMK_ERR_DEV_NOT_CLOSED = 15, ///< Device access not closed
+    LIBMK_ERR_DEV_RESET_FAILED = 16, ///< Device (libusb) reset failed
+    LIBMK_ERR_IFACE_CLAIM_FAILED = 4, ///< Failed to claim libusb interface
+    LIBMK_ERR_IFACE_RELEASE_FAILED = 5, ///< Failed to release libusb interface
+    LIBMK_ERR_DEV_CLOSE_FAILED = 6, ///< Failed to close libusb device
+    LIBMK_ERR_DEV_OPEN_FAILED = 7, ///< Failed to open libusb device
+    LIBMK_ERR_KERNEL_DRIVER = 8, ///< Failed to unload kernel driver
+    LIBMK_ERR_DEV_LIST = 9, ///< Failed to retrieve libusb device list
+    LIBMK_ERR_TRANSFER = 10, ///< Failed to transfer data to or from device
+    LIBMK_ERR_DESCR = 11, ///< Failed to get libusb device descriptor
+    LIBMK_ERR_PROTOCOL = 13, ///< Keyboard interaction protocol error
 } LibMK_Result;
 
 
+/// @brief LED Effect Types
 typedef enum LibMK_Effect {
-    /** Describes LED effect types
-     *
-     *  All these effects are actually stored on the microcontroller
-     *  in the keyboard. Applying the effect has the effect of also
-     *  storing it in a profile because of this limitation.
-     */
-    LIBMK_EFF_FULL = 0,  // All LEDs in a single color
-    LIBMK_EFF_BREATH = 1,  // All LEDs single color turning slowly on and off
-    LIBMK_EFF_BREATH_CYCLE = 2,  // All LEDs cycling through different colors
-    LIBMK_EFF_SINGLE = 3,  // Keystrokes highlighted with fading light
-    LIBMK_EFF_WAVE = 4,  // Color wave
-    LIBMK_EFF_RIPPLE = 5,  // Rippling effect from keystroke
-    LIBMK_EFF_CROSS = 6,  // Fading cross-effect from keystroke
-    LIBMK_EFF_RAIN = 7,  // Diagonal streaks of light
-    LIBMK_EFF_STAR = 8,  // Fading dots in a random pattern
-    LIBMK_EFF_SNAKE = 9,  // Snake game
-    LIBMK_EFF_CUSTOM = 10,  // Custom LED layout
-    LIBMK_EFF_OFF = 0xFE,
+    LIBMK_EFF_FULL = 0,  ///< All LEDs in a single color
+    LIBMK_EFF_BREATH = 1,  ///< All LEDs single color turning slowly on and off
+    LIBMK_EFF_BREATH_CYCLE = 2,  ///< All LEDs cycling through different colors
+    LIBMK_EFF_SINGLE = 3,  ///< Keystrokes highlighted with fading light
+    LIBMK_EFF_WAVE = 4,  ///< Color wave over all keys
+    LIBMK_EFF_RIPPLE = 5,  ///< Rippling effect from keystroke
+    LIBMK_EFF_CROSS = 6,  ///< Fading cross-effect from keystroke
+    LIBMK_EFF_RAIN = 7,  ///< Diagonal streaks of light
+    LIBMK_EFF_STAR = 8,  ///< Fading dots in a random pattern
+    LIBMK_EFF_SNAKE = 9,  ///< Snake game
+    LIBMK_EFF_CUSTOM = 10,  ///< Custom LED layout
+    LIBMK_EFF_OFF = 0xFE, ///< LEDs off
     
     // MasterMouse effects
-    LIBMK_EFF_SPECTRUM = 11,
-    LIBMK_EFF_RAPID_FIRE = 12
+    LIBMK_EFF_SPECTRUM = 11, ///< Not used
+    LIBMK_EFF_RAPID_FIRE = 12 ///< Not used
 } LibMK_Effect;
 
 
+/// @brief Supported control modes
 typedef enum LibMK_ControlMode {
-    /** Describes keyboard control modes */
-    LIBMK_FIRMWARE_CTRL = 0x00,
-    LIBMK_EFFECT_CTRL = 0x01,
-    LIBMK_CUSTOM_CTRL = 0x02,
-    LIBMK_PROFILE_CTRL = 0x03,
+    LIBMK_FIRMWARE_CTRL = 0x00, ///< Default state, no interaction
+    LIBMK_EFFECT_CTRL = 0x01, ///< Software controls lighting effects
+    LIBMK_CUSTOM_CTRL = 0x02, ///< Software controls individual LEDs
+    LIBMK_PROFILE_CTRL = 0x03, ///< Software controls profiles
 } LibMK_ControlMode;
 
 
+/// @brief Supported keyboard layouts
 typedef enum LibMK_Layout {
     LIBMK_LAYOUT_UNKNOWN = 0,
     LIBMK_LAYOUT_ANSI = 1,
     LIBMK_LAYOUT_ISO = 2,
-    LIBMK_LAYOUT_JP = 3
+    LIBMK_LAYOUT_JP = 3 ///< Currently not supported
 } LibMK_Layout;
 
 
+/// @brief Firmware details (version) and layout (speculative)
 typedef struct LibMK_Firmware {
-    /** Describes keyboard firmware details */
     unsigned char major;
     unsigned char minor;
     unsigned char patch;
@@ -105,6 +100,7 @@ typedef struct LibMK_Firmware {
 } LibMK_Firmware;
 
 
+/// @brief Supported keyboard sizes
 typedef enum LibMK_Size {
     LIBMK_L = 0,
     LIBMK_M = 1,
@@ -112,13 +108,8 @@ typedef enum LibMK_Size {
 } LibMK_Size;
 
 
+/// @brief Supported keyboard models
 typedef enum LibMK_Model {
-    /** Describes models available for use with this library
-     *
-     * The device indices are the same as the ones used in the official
-     * Cooler Master (Windows-only) SDK. Not all these devices are
-     * supported.
-     */
     DEV_RGB_L = 0,
     DEV_RGB_M = 5,
     DEV_RGB_S = 1,
@@ -127,26 +118,25 @@ typedef enum LibMK_Model {
     DEV_WHITE_M = 3,
     DEV_WHITE_S = 7,
 
-    DEV_NOT_SET = -1,
-    DEV_ANY = -2,
-    DEV_UNKNOWN = -3,
+    DEV_NOT_SET = -1, ///< Device not set globally
+    DEV_ANY = -2, ///< Any supported device
+    DEV_UNKNOWN = -3, ///< Unrecognized device
 } LibMK_Model;
 
 
+/** @brief Struct describing a supported USB device
+ *
+ * This struct may be used as a linked list. Holds information required
+ * for the identification of the keyboard on the machine.
+ */
 typedef struct LibMK_Device {
-    /** Struct describing a supported USB device
-     *
-     * This struct supports usage as a linked list with the 'next'
-     * attribute. Holds information required for identifying the
-     * keyboard layout and other attributes.
-     */
-    char* iManufacturer;  // Manufacturer string
-    char* iProduct;  // Product string
-    int bVendor;
-    int bDevice;
-    LibMK_Model model;
-    struct LibMK_Device* next;
-    libusb_device* device;
+    char* iManufacturer; ///< Manufacturer string
+    char* iProduct;  ///< Product string
+    int bVendor; ///< USB Vendor ID number
+    int bDevice; ///< USB Device ID number
+    LibMK_Model model; ///< Model number
+    struct LibMK_Device* next; ///< Linked list attribute
+    libusb_device* device; ///< libusb_device struct instance
 } LibMK_Device;
 
 

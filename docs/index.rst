@@ -9,11 +9,11 @@ interface to the LEDs on the MasterKeys keyboard series.
    :maxdepth: 2
    :caption: Contents:
 
-   devices
-   contributing
-   libmk/index
-   masterkeys/index
-   examples/index
+   source/devices
+   source/contributing
+   source/libmk/index
+   source/masterkeys/index
+   source/examples/index
 
 .. |Travis| image:: https://api.travis-ci.com/RedFantom/masterkeys-linux.svg
    :alt: Travis-CI Build Status

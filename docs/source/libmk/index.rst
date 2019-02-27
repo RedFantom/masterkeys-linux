@@ -4,4 +4,4 @@ libmk
 .. toctree::
 
    description
-   documentation
+   documentation/index

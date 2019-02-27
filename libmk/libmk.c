@@ -525,10 +525,7 @@ int libmk_enable_control(LibMK_Handle* handle) {
         return LIBMK_ERR_IFACE_CLAIM_FAILED;
 
     // Send the enable control packet to the keyboard
-    r = libmk_send_control_packet(handle);
-    if (r != LIBMK_SUCCESS)
-        return LIBMK_ERR_SEND;
-    return LIBMK_SUCCESS;
+    return libmk_send_control_packet(handle);
 }
 
 
@@ -570,7 +567,7 @@ int libmk_disable_control(LibMK_Handle* handle) {
         2, HEADER_DEFAULT, OPCODE_DISABLE);
     r = libmk_send_packet(handle, packet);
     if (r != LIBMK_SUCCESS)
-        return LIBMK_ERR_SEND;
+        return r;
 
     r = libusb_release_interface(handle->handle, LIBMK_IFACE_NUM);
     if (r < 0)
