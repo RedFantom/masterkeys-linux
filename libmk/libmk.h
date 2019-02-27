@@ -211,7 +211,7 @@ int libmk_exit();
  * @param model_list: Pointer to an array of LibMK_Model enums. Required
  *    memory for storage is allocated by the function and must be freed
  *    by the caller.
- * @returns: The number of found devices, or a LibMK_Result error code.
+ * @returns The number of found devices, or a LibMK_Result error code.
  *
  * Perform a search for devices using libusb and store all the found
  * supported devices in an allocated array of LibMK_Model.
@@ -221,7 +221,7 @@ int libmk_detect_devices(LibMK_Model** model_list);
 /** @brief Internal function. Loads the details of a device
  *
  * @param device: libusb device descriptor to load details for
- * @returns: pointer to LibMK_Device instance if successful, NULL
+ * @returns pointer to LibMK_Device instance if successful, NULL
  *    otherwise
  *
  * Loads the details of a USB device into a LibMK_Device struct instance.
@@ -257,7 +257,7 @@ int libmk_free_handle(LibMK_Handle* handle);
  *    LIBMK_ERR_DEV_NOT_CONNECTED is returned.
  * @param handle: Pointer to pointer of struct LibMK_Handle. The funtion
  *    allocates a LibMK_Handle struct and stores a pointer to it here.
- * @returns: LibMK_Result code, NULL or valid pointer in *handle.
+ * @returns LibMK_Result code, NULL or valid pointer in *handle.
  *
  * If NULL is passed for handle the function will set the global
  * LibMK_Handle to the device specified. The function chooses the first
@@ -269,7 +269,7 @@ int libmk_set_device(LibMK_Model model, LibMK_Handle** handle);
  *
  * @param handle: LibMK_Handle* for the device to control. If NULL, the
  *    global handle is used.
- * @returns: LibMK_Result result code
+ * @returns LibMK_Result result code
  *
  * Must be called in order to be able to control the keyboard. Claims
  * the LED interface on the keyboard USB controller with the appropriate
@@ -281,7 +281,7 @@ int libmk_enable_control(LibMK_Handle* handle);
  *
  * @param handle: LibMK_Handle* for the device to release. If NULL, the
  *    global handle is used.
- * @returns: LibMK_Result result code
+ * @returns LibMK_Result result code
  *
  * Must be called when the user is done controlling the keyboard.
  * Support for re-enabling of control on the same LibMK_Handle is not
@@ -296,7 +296,7 @@ int libmk_claim_interface(LibMK_Handle* handle);
  *
  * @param handle: LibMK_Handle* for the device to send the packet to. If
  *    NULL, the global handle is used.
- * @returns: LibMK_Result result code
+ * @returns LibMK_Result result code
  */
 int libmk_send_control_packet(LibMK_Handle* handle);
 
@@ -312,7 +312,7 @@ int libmk_get_device_ident(LibMK_Handle* handle);
  *    If NULL, the global handle is used.
  * @param fw: A LibMK_Firmware* is provided here if the firmware details
  *    are retrieved successfully.
- * @returns: LibMK_Result result code, NULL or LibMK_Firmware* in fw
+ * @returns LibMK_Result result code, NULL or LibMK_Firmware* in fw
  */
 int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
 
@@ -321,7 +321,7 @@ int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
  * @param handle: LibMK_Handle for the device to send the packet to
  * @param packet: Array of bytes (unsigned char) to send of size
  *    LIBMK_PACKET_SIZE
- * @returns: LibMK_Result result code
+ * @returns LibMK_Result result code
  *
  * Sends a single packet of data to the keyboard of size
  * LIBMK_PACKET_SIZE (will segfault if not properly sized!) and
@@ -336,7 +336,7 @@ int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet);
  * @param handle: LibMK_Handle for the device to exchange data with
  * @param packet: Array of bytes (unsigned char) to send of size
  *    LIBMK_PACKET_SIZE and to put response in
- * @returns: LibMK_Result result code, response in packet
+ * @returns LibMK_Result result code, response in packet
  *
  * Send a single packet to the keyboard and then store the response
  * in the packet array. Does not free the packet memory or verify
@@ -348,27 +348,77 @@ int libmk_exch_packet(LibMK_Handle* handle, unsigned char* packet);
  *
  * @param predef: Amount of predefined bytes in the packet
  * @param ...: bytes that are predefined, starting from index 0
- * @returns: Pointer to the allocated array of bytes
+ * @returns Pointer to the allocated array of bytes
  */
 unsigned char* libmk_build_packet(unsigned char predef, ...);
 
-
-/** LED Control */
+/** @brief Set effect to be active on keyboard
+ *
+ * @param handle: LibMK_Handle for device to set effect on. If NULL uses
+ *    global device handle
+ * @param effect: LibMK_Effect specifier of effect to activate
+ * @returns LibMK_Result result code
+ */
 int libmk_set_effect(LibMK_Handle* handle, LibMK_Effect effect);
-int libmk_set_effect_details(
-    LibMK_Handle* handle, LibMK_Effect_Details* effect);
+
+/** @brief Set effect to be active on keyboard with parameters
+ *
+ * @param handle: LibMK_Handle for device to set effect on. If NULL uses
+ *    global device handle.
+ * @param effect: LibMK_Effect_Details instance with all parameters set
+ * @returns LibMK_Result result code
+ */
+int libmk_set_effect_details(LibMK_Handle* handle, LibMK_Effect_Details* effect);
+
+/** @brief Set color of all the LEDs on the keyboard to a single color
+ *
+ * @param handle: LibMK_Handle for device to set color off. If NULL uses
+ *    global device handle.
+ * @param r: color byte red
+ * @param g: color byte green
+ * @param b: color byte blue
+ * @returns LibMK_Result result code
+ */
 int libmk_set_full_color(
     LibMK_Handle* handle, unsigned char r, unsigned char g, unsigned char b);
-int libmk_set_all_led_color(
-    LibMK_Handle* handle,
-    unsigned char* colors);
+
+/** @brief Set the color of all the LEDs on the keyboard individually
+ *
+ * @param handle: LibMK_Handle for device to set the key colors on. If
+ *    NULL uses the global device handle.
+ * @param colors: Pointer to array of unsigned char of
+ *    [LIBMK_MAX_ROWS][LIBMK_MAX_COLS][3] size.
+ * @returns LibMK_Result result code
+ */
+int libmk_set_all_led_color(LibMK_Handle* handle, unsigned char* colors);
+
+/** @brief Set the color of a single LED on the keyboard
+ *
+ * @param handle: LibMK_Handle for device to set the color of the key
+ *    on. If NULL uses the global device handle.
+ * @param row: Zero-indexed row index
+ * @param col: Zero-indexed column index
+ * @param r: color byte red
+ * @param g: color byte green
+ * @param b: color byte blue
+ * @returns LibMK_Result result code
+ */
 int libmk_set_single_led(
     LibMK_Handle* handle, unsigned char row, unsigned char col,
     unsigned char r, unsigned char g, unsigned char b);
+
+/** @brief Retrieve the addressing offset of a specific key
+ *
+ * @param offset: Pointer to unsigned char to store offset in
+ * @param handle: LibMK_Handle for the device to find the offset for. Is
+ *    required in order to determine the layout of the device.
+ * @param row: Zero-indexed row index
+ * @param col: Zero-indexed column index
+ * @returns LibMK_Result result code
+ */
 int libmk_get_offset(
     unsigned char* offset, LibMK_Handle* handle,
     unsigned char row, unsigned char col);
-
 
 /** Debugging purposes */
 void libmk_print_packet(unsigned char* packet);
