@@ -94,3 +94,6 @@ MANIFEST
 /docs/_build
 /docs/html
 /docs/_doctrees
+/docs/doxygen/xml
+/html
+/latex

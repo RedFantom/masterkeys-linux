@@ -1,0 +1,7 @@
+.. _autocomplete:
+
+Documentation
+=============
+
+.. doxygenindex::
+

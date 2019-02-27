@@ -15,6 +15,7 @@ endif()
 set(BINARY_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/_build")
 set(SPHINX_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_doctrees")
 set(SPHINX_HTML_DIR "${CMAKE_CURRENT_BINARY_DIR}/_build/html")
+set(SPHINX_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
@@ -25,6 +26,11 @@ add_custom_target(libmk_docs ALL
             -q -b html
             -c "${BINARY_BUILD_DIR}"
             -d "${SPHINX_CACHE_DIR}"
-            "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${SPHINX_SOURCE_DIR}"
             "${SPHINX_HTML_DIR}"
+        DEPENDS doxygen
         COMMENT "Building HTML documentation")
+
+add_custom_target(doxygen
+        COMMAND doxygen doxygen.conf
+        COMMENT "Building Doxygen XML files")
