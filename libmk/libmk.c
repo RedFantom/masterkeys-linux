@@ -170,12 +170,6 @@ const unsigned char LIBMK_LAYOUT[2][3][LIBMK_MAX_ROWS][LIBMK_MAX_COLS] = {
 
 
 bool libmk_init(void) {
-    /** Initialize the library and its dependencies to a usable state
-     *
-     * Initializes a default libusb context for use throughout the library.
-     * If a call to this function is omitted, segmentation faults will be
-     * the result.
-    */
     int result = libusb_init(&Context);
 #ifdef LIBMK_USB_DEBUG
     libusb_set_debug(Context, LIBUSB_LOG_LEVEL_DEBUG);
@@ -185,13 +179,6 @@ bool libmk_init(void) {
 
 
 int libmk_exit(void) {
-    /** Clear up any resources this library may have allocated
-     *
-     * Closes the libusb context and frees the allocated memory for the
-     * global device handle if it is set. This function does not
-     * automatically close any LibMK_Handle structs that may be
-     * allocated by the user.
-    */
     if (DeviceHandle != NULL) {
         int r = libmk_free_handle(DeviceHandle);
         if (r != LIBMK_SUCCESS)
@@ -203,12 +190,6 @@ int libmk_exit(void) {
 
 
 int libmk_detect_devices(LibMK_Model** model_list) {
-    /** Build an array of all connected controllable devices
-     *
-     * This function searches a libusb device list of all connected devices
-     * for MasterKeys devices produced by Cooler Master. Then determines the
-     * model, and allocates an array of LibMK_Model enums.
-    */
     libusb_device** devices = NULL;
     ssize_t amount = libusb_get_device_list(Context, &devices);
     if (amount < 0)
@@ -714,6 +695,8 @@ unsigned char* libmk_build_packet(unsigned char predef, ...) {
     /** Return a pointer to a packet filled with zeros */
     unsigned char* packet = (unsigned char*)
         malloc(LIBMK_PACKET_SIZE * sizeof(unsigned char));
+    if (packet == NULL)
+        return NULL;
     for (int i = 0; i < LIBMK_PACKET_SIZE; i++)
         packet[i] = 0x00;
     va_list elements;
