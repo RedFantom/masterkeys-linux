@@ -103,7 +103,7 @@ def detect_devices():
     """
     Detect supported connected devices and return a tuple of models
     
-    :return: Tuple of integers (:class:``.Model``)
+    :return: Tuple of integers (:class:`.Model`)
     :rtype: Tuple[int, ...]
     :raises: ``RuntimeError`` upon internal Python error
     """
@@ -239,7 +239,7 @@ def set_all_led_color_dict(keys):
 
     :param keys: Dictionary containing key color data
     :type keys: Dict[Tuple[int, int], Tuple[int, int, int]]
-    :return: Result code (:class:``.ResultCode``)
+    :return: Result code (:class:`.ResultCode`)
     :rtype: int
     """
     layout = build_layout_list()
