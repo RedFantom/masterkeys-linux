@@ -23,3 +23,6 @@ interface to the LEDs on the MasterKeys keyboard series.
 .. |PyPI| image:: https://badge.fury.io/py/masterkeys.svg
    :alt: PyPI Version
    :target: https://pypi.python.org/pypi/masterkeys
+.. |Docs| image:: https://readthedocs.org/projects/masterkeys-linux/badge/?version=latest
+   :alt: Documentation
+   :target: https://masterkeys-linux.readthedocs.io/en/latest
