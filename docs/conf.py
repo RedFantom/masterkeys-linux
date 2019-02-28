@@ -9,13 +9,15 @@ import subprocess
 import os
 import sys
 
-os.chdir("../..")
-print("Building documentation from:", os.getcwd())
-sys.path.append(os.getcwd())
-
 rtd_build = os.environ.get('READTHEDOCS', None) == 'True'
 if rtd_build:
     subprocess.call("doxygen doxygen.conf", shell=True)
+
+
+os.chdir(".." if rtd_build else "../..")
+print("Building documentation from:", os.getcwd())
+sys.path.append(os.getcwd())
+
 
 # -- General configuration ------------------------------------------------
 
