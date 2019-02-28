@@ -3,7 +3,11 @@ Author: RedFantom
 License: GNU GPLv3
 Copyright (c) 2018-2019 RedFantom
 """
-from . import masterkeys as _mk
+try:
+    from . import masterkeys as _mk
+except ImportError:
+    import warnings
+    warnings.warn("Failed to import masterkeys C library", ImportWarning)
 from enum import Enum
 try:
     from typing import Dict, List, Tuple
@@ -95,6 +99,7 @@ def detect_devices():
     # type: () -> Tuple[int, ...]
     """
     Detect supported connected devices and return a tuple of models
+    
     :return: tuple[int] identifying models
     :raises: RuntimeError upon internal Python error
     """

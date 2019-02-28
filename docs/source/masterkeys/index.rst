@@ -1,6 +1,6 @@
 masterkeys
 ==========
 
-.. automodule:: masterkeys.__init__
+.. automodule:: masterkeys
    :members:
    :undoc-members:

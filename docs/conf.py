@@ -7,7 +7,11 @@
 
 import subprocess
 import os
+import sys
 
+os.chdir("../..")
+print("Building documentation from:", os.getcwd())
+sys.path.append(os.getcwd())
 
 rtd_build = os.environ.get('READTHEDOCS', None) == 'True'
 if rtd_build:
@@ -103,39 +107,6 @@ html_sidebars = {
     ]
 }
 
-# -- Options for HTMLHelp output ------------------------------------------
-
-# Output file base name for HTML help builder.
-htmlhelp_basename = "libmkdoc"
-
-# -- Options for LaTeX output ---------------------------------------------
-
-latex_elements = {
-    # The paper size ("letterpaper" or "a4paper").
-    #
-    # "papersize": "letterpaper",
-
-    # The font size ("10pt", "11pt" or "12pt").
-    #
-    # "pointsize": "10pt",
-
-    # Additional stuff for the LaTeX preamble.
-    #
-    # "preamble": "",
-
-    # Latex figure (float) alignment
-    #
-    # "figure_align": "htbp",
-}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, "libmk.tex", "libmk Documentation",
-     "RedFantom", "manual"),
-]
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
@@ -143,17 +114,6 @@ latex_documents = [
 man_pages = [
     (master_doc, "libmk", "libmk Documentation",
      [author], 1)
-]
-
-# -- Options for Texinfo output -------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (master_doc, "libmk", "libmk Documentation",
-     author, "libmk", "One line description of project.",
-     "Miscellaneous"),
 ]
 
 # -- Options for Breathe Extension ----------------------------------------
