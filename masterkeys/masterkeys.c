@@ -234,6 +234,42 @@ static PyObject* masterkeys_get_device_ident(PyObject* self, PyObject* args) {
 }
 
 
+static PyObject* masterkeys_get_active_profile(PyObject* self, PyObject* args) {
+    /** Return the active profile on the keyboard */
+    char profile;
+    int r = libmk_get_active_profile(NULL, &profile);
+    if (r != LIBMK_SUCCESS)
+        return NULL;
+    return PyInt_FromLong(profile);
+}
+
+
+static PyObject* masterkeys_set_active_profile(PyObject* self, PyObject* args) {
+    /** Set the active profile on the keyboard */
+    long profile;
+    if (!PyArg_ParseTuple(args, "i", &profile))
+        return NULL;
+    int r = libmk_set_active_profile(NULL, profile);
+    return PyInt_FromLong(r);
+}
+
+
+static PyObject* masterkeys_save_profile(PyObject* self, PyObject* args) {
+    /** Save changes made to the active profile */
+    int r = libmk_save_profile(NULL);
+    return PyInt_FromLong(r);
+}
+
+
+static PyObject* masterkeys_set_control_mode(PyObject* self, PyObject* args) {
+    /** Set the control mode on the keyboard */
+    LibMK_ControlMode mode;
+    if (!PyArg_ParseTuple(args, "i", &mode))
+        return NULL;
+    return PyInt_FromLong(libmk_set_control_mode(NULL, mode));
+}
+
+
 static struct PyMethodDef masterkeys_funcs[] = {
     {
         "detect_devices",
@@ -287,6 +323,26 @@ static struct PyMethodDef masterkeys_funcs[] = {
         masterkeys_get_device_ident,
         METH_NOARGS,
         "Return the bDevice USB descriptor value"
+    }, {
+        "get_active_profile",
+        masterkeys_get_active_profile,
+        METH_VARARGS,
+        "Return the number of the active profile"
+    }, {
+        "set_active_profile",
+        masterkeys_set_active_profile,
+        METH_VARARGS,
+        "Set the active profile on the keyboard"
+    }, {
+       "save_profile",
+       masterkeys_save_profile,
+       METH_VARARGS,
+       "Save the changes made to the active profile"
+    }, {
+        "set_control_mode",
+        masterkeys_set_control_mode,
+        METH_VARARGS,
+        "Set the control mode of the keyboard"
     }, {NULL, NULL, 0, NULL}
 };
 

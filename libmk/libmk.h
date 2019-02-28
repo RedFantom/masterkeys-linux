@@ -50,6 +50,7 @@ typedef enum LibMK_Result {
     LIBMK_ERR_TRANSFER = -10, ///< Failed to transfer data to or from device
     LIBMK_ERR_DESCR = -11, ///< Failed to get libusb device descriptor
     LIBMK_ERR_PROTOCOL = -13, ///< Keyboard interaction protocol error
+    LIBMK_ERR_INVALID_ARG = -14, ///< Invalid arguments passed by caller
 } LibMK_Result;
 
 
@@ -141,6 +142,9 @@ typedef struct LibMK_Device {
     libusb_device* device; ///< libusb_device struct instance
 } LibMK_Device;
 
+
+/** @brief Array of strings representing the supported models */
+const char* LIBMK_MODEL_STRINGS[];
 
 /** @brief Struct describing an opened supported device
  *
@@ -316,6 +320,9 @@ int libmk_get_device_ident(LibMK_Handle* handle);
  */
 int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
 
+
+int libmk_set_control_mode(LibMK_Handle* handle, LibMK_ControlMode mode);
+
 /** @brief Send a single packet and verify the response
  *
  * @param handle: LibMK_Handle for the device to send the packet to
@@ -331,6 +338,7 @@ int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw);
  */
 int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet);
 
+
 /** @brief Exchange a single packet with the keyboard
  *
  * @param handle: LibMK_Handle for the device to exchange data with
@@ -343,14 +351,6 @@ int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet);
  * the response as an error response.
  */
 int libmk_exch_packet(LibMK_Handle* handle, unsigned char* packet);
-
-/** @brief Build a packet using the given data
- *
- * @param predef: Amount of predefined bytes in the packet
- * @param ...: bytes that are predefined, starting from index 0
- * @returns Pointer to the allocated array of bytes
- */
-unsigned char* libmk_build_packet(unsigned char predef, ...);
 
 /** @brief Set effect to be active on keyboard
  *
@@ -420,5 +420,68 @@ int libmk_get_offset(
     unsigned char* offset, LibMK_Handle* handle,
     unsigned char row, unsigned char col);
 
+/** @brief Set the profile active on the device
+ *
+ * @param handle: LibMK_Handle for the device to set the profile on. If
+ *    NULL the global device handle is used.
+ * @param profile: Number of the profile to activate.
+ * @returns LibMK_Result result code
+ *
+ * The MasterKeys series of devices supports four individual lighting
+ * profiles to which settings can be saved. A profile is activated by
+ * changing the control mode and then activating the new profile. Any
+ * changes applied to the lighting of the keyboard are lost when
+ * changing the control mode to profile control.
+ */
+int libmk_set_active_profile(LibMK_Handle* handle, char profile);
+
+/** @brief Retrieve the number of the active profile on the device
+ *
+ * @param handle: LibMK_Handle for the device to get the number of the
+ *    active profile from. If NULL the global device handle is used.
+ * @param profile: Pointer to the unsigned char to store the number of
+ *    the profile in.
+ * @returns LibMK_Result result code
+ */
+int libmk_get_active_profile(LibMK_Handle* handle, char* profile);
+
+/** @brief Save the current lighting settings to the active profile
+ *
+ * @param handle: LibMK_Handle for the device to save the changes to. If
+ *    NULL the global device handle is used.
+ * @returns LibMK_Result result code
+ *
+ * Saves the lighting settings to the profile that is returned by
+ * libmk_get_active_profile. The changes persist after releasing control
+ * of the keyboard, and even after power-cycling the keyboard. The
+ * previous lighting configuration in the profile is deleted and
+ * non-recoverable.
+ */
+int libmk_save_profile(LibMK_Handle* handle);
+
+/** @brief Send a packet specifying whether to expect a response
+ *
+ * @param handle: LibMK_Handle of the device to send the packet to. If
+ *    NULL the global device handle is used.
+ * @param packet: Pointer to array of packet to send.
+ * @param r: Whether to expect a response. If ``false``, the function
+ *    still attempts to read a response to make sure that the buffer is
+ *    empty. If ``true``, performs protocol error checks and yields an
+ *    error if no response was received.
+ * @returns LibMK_Result result code
+ */
+int libmk_send_recv_packet(LibMK_Handle* handle, unsigned char* packet, bool r);
+
+/** @brief Build a new packet of data that can be sent to keyboard
+ *
+ * @param predef: Amount of bytes given in the variable arguments
+ * @param ...: Bytes to from index zero of the packet. The amount of
+ *    bytes given must be equal to the amount specified by ``predef``,
+ *    otherwise this function will segfault.
+ * @returns Pointer to the allocated packet with the set bytes. NULL if
+ *    no memory could be allocated.
+ */
+unsigned char* libmk_build_packet(unsigned char predef, ...);
+
 /** Debugging purposes */
-void libmk_print_packet(unsigned char* packet);
+void libmk_print_packet(unsigned char* packet, char* label);

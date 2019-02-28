@@ -1,5 +1,4 @@
-/**
- * Author: RedFantom
+/** Author: RedFantom
  * License: GNU GPLv3
  * Copyright (c) 2018-2019 RedFantom
 */
@@ -11,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LIBMK_DEBUG
+// #define LIBMK_DEBUG
 // #define LIBMK_USB_DEBUG
 
 #ifndef LIBMK_DEBUG
@@ -41,12 +40,11 @@ typedef enum LibMK_Effect LibMK_Effect;
 typedef struct LibMK_Device LibMK_Device;
 
 /** Constants */
-const unsigned char HEADER_DEFAULT = 0x41;        // 0100 0001
-const unsigned char HEADER_EFFECT = 0x50;         // 0101 0000
+const unsigned char HEADER_SET = 0x51;            // 1001 0001
+const unsigned char HEADER_GET = 0x52;            // 1001 0010
+
 const unsigned char HEADER_FULL_COLOR = 0xc0;     // 1100 0000
 const unsigned char HEADER_ERROR = 0xFF;          // 1111 1111
-const unsigned char OPCODE_ENABLE = 0x02;         // 0000 0010
-const unsigned char OPCODE_DISABLE = 0x00;        // 0000 0000
 const unsigned char OPCODE_EFFECT = 0x28;         // 0010 1000
 const unsigned char OPCODE_ALL_LED = 0xA8;        // 1010 1000
 const unsigned char OPCODE_EFFECT_ARGS = 0x2c;    // 0010 1100
@@ -58,6 +56,17 @@ const unsigned int ISO[] =
 
 const unsigned char LAYOUT_ANSI = 0;
 const unsigned char LAYOUT_ISO = 1;
+
+const char* LIBMK_MODEL_STRINGS[] = {
+    "MasterKeys Pro L RGB",
+    "MasterKeys Pro S RGB",
+    "MasterKeys Pro L White",
+    "MasterKeys Pro M White",
+    "Unknown Model",
+    "MasterKeys Pro M RGB",
+    "Unknown Model",
+    "MasterKeys Pro S White",
+};
 
 /** Layout matrices
  *
@@ -174,7 +183,7 @@ bool libmk_init(void) {
 #ifdef LIBMK_USB_DEBUG
     libusb_set_debug(Context, LIBUSB_LOG_LEVEL_DEBUG);
 #endif
-    return (result == 0);
+    return (result == LIBUSB_SUCCESS);
 }
 
 
@@ -330,13 +339,6 @@ int libmk_create_handle(LibMK_Handle** handle, LibMK_Device* device) {
         libusb_close((*handle)->handle);
         return LIBMK_ERR_UNKNOWN_LAYOUT;
     }
-    LibMK_Firmware* fw;
-    r = libmk_get_firmware_version(*handle, &fw);
-    if (r != LIBMK_SUCCESS) {
-        libusb_close((*handle)->handle);
-        return r;
-    }
-    (*handle)->layout = fw->layout;
     return LIBMK_SUCCESS;
 }
 
@@ -458,20 +460,17 @@ int libmk_enable_control(LibMK_Handle* handle) {
 
 
 int libmk_send_control_packet(LibMK_Handle* handle) {
-    unsigned char* disable = libmk_build_packet(
-        2, 0x41, 0x01);
-    int r = libmk_send_packet(handle, disable);
+    int r = libmk_set_control_mode(handle, LIBMK_CUSTOM_CTRL);
     if (r != LIBMK_SUCCESS)
         return r;
-    unsigned char* packet = libmk_build_packet(
-        2, HEADER_DEFAULT, OPCODE_ENABLE);
-    return libmk_send_packet(handle, packet);
-}
-
-
-int libmk_send_flush_packet(LibMK_Handle* handle) {
-    unsigned char* packet = libmk_build_packet(2, 0x50, 0x55);
-    return libmk_send_packet(handle, packet);
+    LibMK_Firmware* fw;
+    r = libmk_get_firmware_version(handle, &fw);
+    if (r != LIBMK_SUCCESS) {
+        libusb_close(handle->handle);
+        return r;
+    }
+    handle->layout = fw->layout;
+    return LIBMK_SUCCESS;
 }
 
 
@@ -481,11 +480,7 @@ int libmk_disable_control(LibMK_Handle* handle) {
     if (handle == NULL)
         return LIBMK_ERR_DEV_NOT_SET;
 
-    int r;
-
-    unsigned char* packet = libmk_build_packet(
-        2, HEADER_DEFAULT, OPCODE_DISABLE);
-    r = libmk_send_packet(handle, packet);
+    int r = libmk_set_control_mode(handle, LIBMK_FIRMWARE_CTRL);
     if (r != LIBMK_SUCCESS)
         return r;
 
@@ -538,12 +533,8 @@ int libmk_set_effect(LibMK_Handle* handle, LibMK_Effect effect) {
     if (r != LIBMK_SUCCESS)
         return r;
     packet = libmk_build_packet(
-        5, HEADER_DEFAULT | HEADER_EFFECT, OPCODE_EFFECT,
-        0x00, 0x00, (unsigned char) effect);
-    r = libmk_send_packet(handle, packet);
-    if (r != LIBMK_SUCCESS)
-        return r;
-    return libmk_send_flush_packet(handle);
+        5, HEADER_SET, OPCODE_EFFECT, 0x00, 0x00, (unsigned char) effect);
+    return libmk_send_packet(handle, packet);
 }
 
 
@@ -562,11 +553,24 @@ int libmk_set_full_color(LibMK_Handle* handle,
 
 
 int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
+    return libmk_send_recv_packet(handle, packet, true);
+}
+
+
+int libmk_send_recv_packet(
+        LibMK_Handle* handle, unsigned char* packet, bool response_required) {
+    if (handle == NULL)
+        handle = DeviceHandle;
+    if (handle == NULL)
+        return LIBMK_ERR_DEV_NOT_SET;
     int t, result;
     int r = libusb_interrupt_transfer(
         handle->handle, LIBMK_EP_OUT | LIBUSB_ENDPOINT_OUT,
         packet, LIBMK_PACKET_SIZE, &t,
         LIBMK_PACKET_TIMEOUT);
+#ifdef LIBMK_DEBUG
+    libmk_print_packet(packet, "Sent");
+#endif // LIBMK_DEBUG
     free(packet);
     if (r != 0 || t != LIBMK_PACKET_SIZE)
         return LIBMK_ERR_TRANSFER;
@@ -574,12 +578,15 @@ int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
     r = libusb_interrupt_transfer(
             handle->handle, LIBMK_EP_IN | LIBUSB_ENDPOINT_IN,
             packet, LIBMK_PACKET_SIZE, &t, LIBMK_PACKET_TIMEOUT);
-    if (r != LIBUSB_SUCCESS) {
+#ifdef LIBMK_DEBUG
+    libmk_print_packet(packet, "Response");
+#endif // LIBMK_DEBUG
+    if (r != LIBUSB_SUCCESS && response_required) {
         result = LIBMK_ERR_TRANSFER;
-    } else if (t != LIBMK_PACKET_SIZE) {
+    } else if (t != LIBMK_PACKET_SIZE && response_required) {
         result = LIBMK_ERR_TRANSFER;
     } else if (packet[0] == HEADER_ERROR) {
-        libmk_print_packet(packet);
+        libmk_print_packet(packet, "Error response");
         result = LIBMK_ERR_PROTOCOL;
     } else
         result = LIBMK_SUCCESS;
@@ -593,6 +600,9 @@ int libmk_exch_packet(LibMK_Handle* handle, unsigned char* packet) {
     int r = libusb_interrupt_transfer(
         handle->handle, LIBMK_EP_OUT | LIBUSB_ENDPOINT_OUT,
         packet, LIBMK_PACKET_SIZE, &t, LIBMK_PACKET_TIMEOUT);
+#ifdef LIBMK_DEBUG
+    libmk_print_packet(packet, "Sent");
+#endif // LIBMK_DEBUG
     if (r != LIBUSB_SUCCESS || t != LIBMK_PACKET_SIZE) {
         free(packet);
         return LIBMK_ERR_TRANSFER;
@@ -600,6 +610,9 @@ int libmk_exch_packet(LibMK_Handle* handle, unsigned char* packet) {
     r = libusb_interrupt_transfer(
         handle->handle, LIBMK_EP_IN | LIBUSB_ENDPOINT_IN,
         packet, LIBMK_PACKET_SIZE, &t, LIBMK_PACKET_TIMEOUT);
+#ifdef LIBMK_DEBUG
+    libmk_print_packet(packet, "Received");
+#endif // LIBMK_DEBUG
     if (r != LIBUSB_SUCCESS || t != LIBMK_PACKET_SIZE)
         return LIBMK_ERR_TRANSFER;
     return LIBMK_SUCCESS;
@@ -646,9 +659,7 @@ int libmk_set_all_led_color(LibMK_Handle* handle, unsigned char* colors) {
     unsigned char* packets[LIBMK_ALL_LED_PCK_NUM];
 
     for (short i = 0; i < LIBMK_ALL_LED_PCK_NUM; i++)
-        packets[i] = libmk_build_packet(
-                3, HEADER_DEFAULT | HEADER_EFFECT,
-                OPCODE_ALL_LED, (unsigned char) i * 2);
+        packets[i] = libmk_build_packet(3, HEADER_SET, 0xA8, (unsigned char) i * 2);
 
     unsigned char offset;
     int packet, index, result;
@@ -667,23 +678,19 @@ int libmk_set_all_led_color(LibMK_Handle* handle, unsigned char* colors) {
                     (r * LIBMK_MAX_COLS + c) * 3 + o];
             }
         }
-
-    int r = libmk_send_flush_packet(handle);
-    if (r != LIBMK_SUCCESS)
-        return r;
+        
     for (short k = 0; k < LIBMK_ALL_LED_PCK_NUM; k++) {
-        r = libmk_send_packet(handle, packets[k]);
+        int r = libmk_send_packet(handle, packets[k]);
         if (r != LIBMK_SUCCESS)
             return r;
     }
-    unsigned char* flush = libmk_build_packet(2, 0x50, 0x55);
-    return libmk_send_packet(handle, flush);
+    return LIBMK_SUCCESS;
 }
 
 
-inline void libmk_print_packet(unsigned char* packet) {
+inline void libmk_print_packet(unsigned char* packet, char* label) {
 #ifdef LIBMK_DEBUG
-    printf("Packet:\n");
+    printf("Packet: %s\n", label);
     for (unsigned char j = 0; j < LIBMK_PACKET_SIZE; j++) {
         printf("%02x ", packet[j]);
         if ((j + 1) % 16 == 0) {
@@ -712,7 +719,7 @@ int libmk_set_single_led(
         handle = DeviceHandle;
     if (handle == NULL)
         return LIBMK_ERR_DEV_NOT_SET;
-    int result = libmk_send_control_packet(handle);
+    int result = libmk_set_control_mode(handle, LIBMK_CUSTOM_CTRL);
     if (result != LIBMK_SUCCESS)
         return result;
     unsigned char offset;
@@ -732,7 +739,7 @@ int libmk_set_effect_details(
     if (handle == NULL)
         return LIBMK_ERR_DEV_NOT_SET;
     unsigned char* packet = libmk_build_packet(
-        10, HEADER_DEFAULT | HEADER_EFFECT, OPCODE_EFFECT_ARGS, 0x00, 0x00,
+        10, HEADER_SET, OPCODE_EFFECT_ARGS, 0x00, 0x00,
         (unsigned char) effect->effect, effect->speed, effect->direction,
         effect->amount, 0xFF, 0xFF);
     unsigned char i;
@@ -761,10 +768,69 @@ int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw) {
     (*fw) = (LibMK_Firmware*) malloc(sizeof(LibMK_Firmware));
     for (unsigned char i=0; i<5; i++)
         (*fw)->string[i] = p[0x04 + i];
-    (*fw)->string[5] = (char) NULL;
+    (*fw)->string[5] = 0x00;
     (*fw)->major = p[0x04] & 0x0F;
     (*fw)->minor = p[0x06] & 0x0F;
     (*fw)->patch = p[0x08] & 0x0F;
     (*fw)->layout = p[0x04] & 0x0F;
     return LIBMK_SUCCESS;
+}
+
+
+int libmk_save_profile(LibMK_Handle* handle) {
+     if (handle == NULL)
+         handle = DeviceHandle;
+     if (handle == NULL)
+         return LIBMK_ERR_DEV_NOT_SET;
+     int r = libmk_set_control_mode(handle, LIBMK_PROFILE_CTRL);
+     if (r != LIBMK_SUCCESS)
+         return r;
+     unsigned char* p = libmk_build_packet(2, 0x50, 0x55);
+     r = libmk_send_recv_packet(handle, p, false);
+     if (r != LIBMK_SUCCESS)
+         return r;
+     return libmk_set_control_mode(handle, LIBMK_CUSTOM_CTRL);
+}
+
+
+int libmk_set_active_profile(LibMK_Handle* handle, char profile) {
+    if (handle == NULL)
+        handle = DeviceHandle;
+    if (handle == NULL)
+        return LIBMK_ERR_DEV_NOT_SET;
+    int r = libmk_set_control_mode(handle, LIBMK_PROFILE_CTRL);
+    if (r != LIBMK_SUCCESS)
+        return r;
+    if (!(1 <= profile <= 4))
+        return LIBMK_ERR_INVALID_ARG;
+    unsigned char* p = libmk_build_packet(5, HEADER_SET, 0x00, 0x00, 0x00, profile);
+    r = libmk_send_packet(handle, p);
+    if (r != LIBMK_SUCCESS)
+        return r;
+    return libmk_set_control_mode(handle, LIBMK_CUSTOM_CTRL);
+}
+
+
+int libmk_get_active_profile(LibMK_Handle* handle, char* profile) {
+    if (handle == NULL)
+        handle = DeviceHandle;
+    if (handle == NULL)
+        return LIBMK_ERR_DEV_NOT_SET;
+    unsigned char* p = libmk_build_packet(1, 0x52);
+    int r = libmk_exch_packet(handle, p);
+    if (r != LIBMK_SUCCESS)
+        return r;
+    *profile = p[4];
+    free(p);
+    return LIBMK_SUCCESS;
+}
+
+
+int libmk_set_control_mode(LibMK_Handle* handle, LibMK_ControlMode mode) {
+    if (handle == NULL)
+        handle = DeviceHandle;
+    if (handle == NULL)
+        return LIBMK_ERR_DEV_NOT_SET;
+    char* p = libmk_build_packet(2, 0x41, mode);
+    return libmk_send_recv_packet(handle, p, false);
 }
