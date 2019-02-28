@@ -67,6 +67,7 @@ dkms.conf
 Makefile
 main-*
 layout.*
+!layout.rst
 /_skbuild
 
 # CMake
@@ -84,6 +85,7 @@ install_manifest.txt
 /dist
 *.pyc
 MANIFEST
+/venv
 
 # Executables
 /record
