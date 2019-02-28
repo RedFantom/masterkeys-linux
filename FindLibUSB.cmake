@@ -1,6 +1,6 @@
 # Author: RedFantom
 # License: GNU GPLv3
-# Copyright (c) 2018 RedFantom
+# Copyright (c) 2018-2019 RedFantom
 
 # LibUSB include directory on Linux
 set(LIBUSB_INCLUDE_DIR /usr/include/libusb-1.0)

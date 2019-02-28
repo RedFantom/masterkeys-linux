@@ -1,7 +1,7 @@
 /**
  * Author: RedFantom
  * License: GNU GPLv3
- * Copyright (c) 2018 RedFantom
+ * Copyright (c) 2018-2019 RedFantom
 */
 #include "libmk.h"
 #include "libusb.h"
@@ -170,12 +170,6 @@ const unsigned char LIBMK_LAYOUT[2][3][LIBMK_MAX_ROWS][LIBMK_MAX_COLS] = {
 
 
 bool libmk_init(void) {
-    /** Initialize the library and its dependencies to a usable state
-     *
-     * Initializes a default libusb context for use throughout the library.
-     * If a call to this function is omitted, segmentation faults will be
-     * the result.
-    */
     int result = libusb_init(&Context);
 #ifdef LIBMK_USB_DEBUG
     libusb_set_debug(Context, LIBUSB_LOG_LEVEL_DEBUG);
@@ -185,13 +179,6 @@ bool libmk_init(void) {
 
 
 int libmk_exit(void) {
-    /** Clear up any resources this library may have allocated
-     *
-     * Closes the libusb context and frees the allocated memory for the
-     * global device handle if it is set. This function does not
-     * automatically close any LibMK_Handle structs that may be
-     * allocated by the user.
-    */
     if (DeviceHandle != NULL) {
         int r = libmk_free_handle(DeviceHandle);
         if (r != LIBMK_SUCCESS)
@@ -203,12 +190,6 @@ int libmk_exit(void) {
 
 
 int libmk_detect_devices(LibMK_Model** model_list) {
-    /** Build an array of all connected controllable devices
-     *
-     * This function searches a libusb device list of all connected devices
-     * for MasterKeys devices produced by Cooler Master. Then determines the
-     * model, and allocates an array of LibMK_Model enums.
-    */
     libusb_device** devices = NULL;
     ssize_t amount = libusb_get_device_list(Context, &devices);
     if (amount < 0)
@@ -249,13 +230,6 @@ int libmk_detect_devices(LibMK_Model** model_list) {
 
 
 LibMK_Device* libmk_open_device(libusb_device* device) {
-    /** Allocate the data in a libusb_device to a LibMK_Device struct
-     *
-     * Reads the properties required for a LibMK_Device struct from a
-     * libusb_device struct pointer through accessing the device
-     * descriptor and then allocating a new struct with
-     * libmk_create_device.
-    */
     int r;
     struct libusb_device_descriptor descriptor;
     libusb_device_handle* handle = NULL;
@@ -300,11 +274,6 @@ LibMK_Device* libmk_open_device(libusb_device* device) {
 LibMK_Device* libmk_create_device(LibMK_Model model, libusb_device* dev,
                                   char* iManufacturer, char* iProduct,
                                   int bVendor, int bDevice) {
-    /** Allocate the space for a new Device struct
-     *
-     * Allocates the memory required for a LibMK_Device struct and sets
-     * the attributes to the values of the parameters.
-    */
     char* m_str = (char*) malloc((strlen(iManufacturer) + 1) * sizeof(char));
     char* p_str = (char*) malloc((strlen(iProduct) + 1) * sizeof(char));
     strcpy(m_str, iManufacturer);
@@ -321,11 +290,6 @@ LibMK_Device* libmk_create_device(LibMK_Model model, libusb_device* dev,
 
 
 void libmk_free_device(LibMK_Device* device) {
-    /** Free the memory occupied by a Device struct
-     *
-     * Frees the allocated char arrays first and then frees the struct
-     * itself.
-    */
     free(device->iManufacturer);
     free(device->iProduct);
     free(device);
@@ -334,13 +298,6 @@ void libmk_free_device(LibMK_Device* device) {
 
 LibMK_Device* libmk_append_device(LibMK_Device* first_device,
                                   LibMK_Device* device) {
-    /** Append a new device to a linked list of Devices
-     *
-     * LibMK_Device supports usage as a linked list. This function
-     * appends a new device to a linked list of LibMK_Device structs.
-     * Returns a new pointer to the first element of the linked list if
-     * the first_device pointer is NULL.
-    */
     if (first_device == NULL)
         return device;
     LibMK_Device* current = first_device;
@@ -352,11 +309,6 @@ LibMK_Device* libmk_append_device(LibMK_Device* first_device,
 
 
 int libmk_create_handle(LibMK_Handle** handle, LibMK_Device* device) {
-    /** Allocate a new LibMK_Handle to a LibMK_Handle pointer
-     *
-     * A LibMK_Handle must be created from a LibMK_Device struct, as
-     * the LibMK_Handle requires special attributes.
-    */
     *handle = (LibMK_Handle*) malloc(sizeof(LibMK_Handle));
     if (*handle == NULL)
         return LIBMK_ERR_DEV_OPEN_FAILED;
@@ -390,12 +342,6 @@ int libmk_create_handle(LibMK_Handle** handle, LibMK_Device* device) {
 
 
 int libmk_free_handle(LibMK_Handle* handle) {
-    /** Free an allocated LibMK_Handle struct
-     *
-     * Frees the memory allocated for a LibMK_Handle. Does not close the
-     * libusb_device_handle contained in a LibMK_Handle, the handle must
-     * be closed before calling this function.
-    */
     if (handle->open)
         return LIBMK_ERR_DEV_NOT_CLOSED;
     free(handle);
@@ -404,11 +350,6 @@ int libmk_free_handle(LibMK_Handle* handle) {
 
 
 int libmk_set_device(LibMK_Model model, LibMK_Handle** handle) {
-    /** Initialize the a connection to a device if it is connected
-     *
-     * 1. Identify the correct connected device as the requested one
-     * 2. Open this device into the device handle address
-    */
     libusb_device** devices;
     ssize_t amount = libusb_get_device_list(NULL, &devices);
     if (amount < 0)
@@ -472,13 +413,6 @@ int libmk_set_device(LibMK_Model model, LibMK_Handle** handle) {
 
 
 LibMK_Model libmk_ident_model(char* product) {
-    /** Identify a device Model with the iProduct descriptor string
-     *
-     * All devices have MasterKeys in their name. Only the MasterKeys
-     * Pro devices support control by this library. The 'MasterKeys'
-     * string already contains a capital M, so the string is checked
-     * for capital S and capital L.
-    */
     if (strstr(product, PRODUCT) == NULL)
         return DEV_UNKNOWN;
     if (strstr(product, WHITE) != NULL) {
@@ -497,7 +431,6 @@ LibMK_Model libmk_ident_model(char* product) {
 
 
 int libmk_get_device_ident(LibMK_Handle* handle) {
-    /** Return the bDevice attribute of a LibMK_Handle struct */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -507,11 +440,6 @@ int libmk_get_device_ident(LibMK_Handle* handle) {
 
 
 int libmk_enable_control(LibMK_Handle* handle) {
-    /** Enable LED control for a keyboard by sending the enable packet
-     *
-     * Can also disable control if called with enable argument set as
-     * false. Returns whether the packet was sent successfully.
-    */
     int r;  // Stores libusb return values
 
     if (handle == NULL)
@@ -525,15 +453,11 @@ int libmk_enable_control(LibMK_Handle* handle) {
         return LIBMK_ERR_IFACE_CLAIM_FAILED;
 
     // Send the enable control packet to the keyboard
-    r = libmk_send_control_packet(handle);
-    if (r != LIBMK_SUCCESS)
-        return LIBMK_ERR_SEND;
-    return LIBMK_SUCCESS;
+    return libmk_send_control_packet(handle);
 }
 
 
 int libmk_send_control_packet(LibMK_Handle* handle) {
-    /** Build and send a packet to enable per-led control on a device */
     unsigned char* disable = libmk_build_packet(
         2, 0x41, 0x01);
     int r = libmk_send_packet(handle, disable);
@@ -546,19 +470,12 @@ int libmk_send_control_packet(LibMK_Handle* handle) {
 
 
 int libmk_send_flush_packet(LibMK_Handle* handle) {
-    /** Build and send a packet to flush cached led states on device */
     unsigned char* packet = libmk_build_packet(2, 0x50, 0x55);
     return libmk_send_packet(handle, packet);
 }
 
 
 int libmk_disable_control(LibMK_Handle* handle) {
-    /** Send the disable control packet and close the device
-     *
-     * libusb requires explicit closing of the interface and the device
-     * handle. If the handle is not given (NULL), the global
-     * DeviceHandle will be closed.
-    */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -570,7 +487,7 @@ int libmk_disable_control(LibMK_Handle* handle) {
         2, HEADER_DEFAULT, OPCODE_DISABLE);
     r = libmk_send_packet(handle, packet);
     if (r != LIBMK_SUCCESS)
-        return LIBMK_ERR_SEND;
+        return r;
 
     r = libusb_release_interface(handle->handle, LIBMK_IFACE_NUM);
     if (r < 0)
@@ -588,13 +505,6 @@ int libmk_disable_control(LibMK_Handle* handle) {
 
 
 int libmk_claim_interface(LibMK_Handle* handle) {
-    /** Wrapper around libusb_claim_interface and libusb_kernel_driver*
-     *
-     * Before attempting to claim the interface, the kernel driver has
-     * to be detached. On most systems, a kernel driver is automatically
-     * attached to the HID device, even though the device is not really
-     * in use by the system, as there is no universal driver for RGB.
-    */
     int r;
     if (handle == NULL)
         handle = DeviceHandle;
@@ -617,7 +527,6 @@ int libmk_claim_interface(LibMK_Handle* handle) {
 
 
 int libmk_set_effect(LibMK_Handle* handle, LibMK_Effect effect) {
-    /** Set a specific effect on the keyboard */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -642,7 +551,6 @@ int libmk_set_full_color(LibMK_Handle* handle,
                          unsigned char r,
                          unsigned char g,
                          unsigned char b) {
-    /** Set the color of all LEDs in the keyboard */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -654,15 +562,6 @@ int libmk_set_full_color(LibMK_Handle* handle,
 
 
 int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
-    /** Send a single packet of data to the specified device
-     *
-     * The device operates in INTERRUPT mode, expects 64 bytes of data
-     * every time. First sends the packet to the device OUT endpoint,
-     * then reads a packet from the device IN endpoint. If the packet
-     * was correctly formatted, this received packet has the same header
-     * as the packet sent. If the header is HEADER_ERROR, then a
-     * protocol error has occurred and the packet was rejected.
-    */
     int t, result;
     int r = libusb_interrupt_transfer(
         handle->handle, LIBMK_EP_OUT | LIBUSB_ENDPOINT_OUT,
@@ -690,12 +589,6 @@ int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
 
 
 int libmk_exch_packet(LibMK_Handle* handle, unsigned char* packet) {
-    /** Send a single packet to the keyboard and receive the response
-     *
-     * The response is put in the memory allocated for the packet to be
-     * sent. If the function encounters an error, the memory is freed
-     * and no response is available (except for a return code).
-    */
     int t;
     int r = libusb_interrupt_transfer(
         handle->handle, LIBMK_EP_OUT | LIBUSB_ENDPOINT_OUT,
@@ -714,9 +607,10 @@ int libmk_exch_packet(LibMK_Handle* handle, unsigned char* packet) {
 
 
 unsigned char* libmk_build_packet(unsigned char predef, ...) {
-    /** Return a pointer to a packet filled with zeros */
     unsigned char* packet = (unsigned char*)
         malloc(LIBMK_PACKET_SIZE * sizeof(unsigned char));
+    if (packet == NULL)
+        return NULL;
     for (int i = 0; i < LIBMK_PACKET_SIZE; i++)
         packet[i] = 0x00;
     va_list elements;
@@ -732,7 +626,6 @@ unsigned char* libmk_build_packet(unsigned char predef, ...) {
 
 
 int libmk_reset(LibMK_Handle* handle) {
-    /** USB Reset the device in the device handle */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -744,17 +637,7 @@ int libmk_reset(LibMK_Handle* handle) {
 }
 
 
-int libmk_set_all_led_color(
-    LibMK_Handle* handle,
-    unsigned char* colors) {
-    /** Set the color of all LEDs in the keyboard
-     *
-     * Reads a 3D matrix (that has to be allocated by the user),
-     * reformat the data into packages to send to the keyboard.
-     *
-     * param unsigned char***: Pointer to 3D matrix
-     * return LibMK_Result: Result code
-     */
+int libmk_set_all_led_color(LibMK_Handle* handle, unsigned char* colors) {
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -799,7 +682,6 @@ int libmk_set_all_led_color(
 
 
 inline void libmk_print_packet(unsigned char* packet) {
-    /** Pretty print a keyboard communication packet */
 #ifdef LIBMK_DEBUG
     printf("Packet:\n");
     for (unsigned char j = 0; j < LIBMK_PACKET_SIZE; j++) {
@@ -814,14 +696,8 @@ inline void libmk_print_packet(unsigned char* packet) {
 
 
 int libmk_get_offset(
-    unsigned char* offset, LibMK_Handle* handle,
-    unsigned char row, unsigned char col) {
-    /** Return the hexadecimal offset value for a key coordinate
-     *
-     * Each layout has its own set of electrical connections within the
-     * keyboard. This function returns the hexadecimal offset for the
-     * appropriate layout into the offset pointer.
-     */
+        unsigned char* offset, LibMK_Handle* handle,
+        unsigned char row, unsigned char col) {
     if (handle->layout != LAYOUT_ISO && handle->layout != LAYOUT_ANSI)
         return LIBMK_ERR_UNKNOWN_LAYOUT;
     *offset = LIBMK_LAYOUT[handle->layout - 1][handle->size][row][col];
@@ -830,14 +706,8 @@ int libmk_get_offset(
 
 
 int libmk_set_single_led(
-    LibMK_Handle* handle, unsigned char row, unsigned char col,
-    unsigned char r, unsigned char g, unsigned char b) {
-    /** Set the color of a single LED on the keyboard based on coords
-     *
-     * The keys on the keyboard can be manipulated by using the
-     * coordinates (row, col) of the specific LED that should be
-     * manipulated.
-     */
+        LibMK_Handle* handle, unsigned char row, unsigned char col,
+        unsigned char r, unsigned char g, unsigned char b) {
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -857,12 +727,6 @@ int libmk_set_single_led(
 
 int libmk_set_effect_details(
     LibMK_Handle* handle, LibMK_Effect_Details* effect) {
-    /** Set an effect on the keyboard with additional arguments
-     *
-     * The arguments are read from a LibMK_Effect_Details struct, from
-     * which a packet is created as described in the interface
-     * description file.
-    */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
@@ -886,11 +750,6 @@ int libmk_set_effect_details(
 
 
 int libmk_get_firmware_version(LibMK_Handle* handle, LibMK_Firmware** fw) {
-    /** Return the firmware details
-     *
-     * TODO: Determine whether the version number encodes the layout
-     * TODO: See libcmmk issue #10 for more information
-    */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)

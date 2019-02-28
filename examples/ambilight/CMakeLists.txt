@@ -1,8 +1,8 @@
 # Author: RedFantom
 # License: GNU GPLv3
-# Copyright (c) 2018 RedFantom
+# Copyright (c) 2018-2019 RedFantom
 cmake_minimum_required(VERSION 3.9)
-include(FindLibUSB.txt)
+include(FindLibUSB.cmake)
 find_package(X11 REQUIRED)
 add_executable(ambilight examples/ambilight/ambilight.c)
 message(${X11_INCLUDE_DIR})

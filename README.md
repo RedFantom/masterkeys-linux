@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.com/RedFantom/masterkeys-linux.svg?token=UBcv5ZyxSrELyQhSpadq&branch=master)](https://travis-ci.com/RedFantom/masterkeys-linux)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version](https://badge.fury.io/py/masterkeys.svg)](https://pypi.org/project/masterkeys/)
+[![Documentation](https://readthedocs.org/projects/masterkeys-linux/badge/?version=latest)](https://masterkeys-linux.readthedocs.io/en/latest)
 
 Cooler Master provides an SDK for its MasterKeys series of keyboards
 for use under Windows, but not for Linux. The SDK communicates with an
