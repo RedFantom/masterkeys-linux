@@ -178,18 +178,6 @@ const unsigned char LIBMK_LAYOUT[2][3][LIBMK_MAX_ROWS][LIBMK_MAX_COLS] = {
 };
 
 
-const char* LIBMK_MODEL_STRINGS[] = {
-    "MasterKeys Pro L RGB", // 0
-    "MasterKeys Pro S RGB", // 1
-    "MasterKeys Pro L White", // 2
-    "MasterKeys Pro M White", // 3
-    "Unknown Model", // 4
-    "MasterKeys Pro M RGB", // 5
-    "Unknown Model", // 6
-    "MasterKeys Pro S White",
-};
-
-
 bool libmk_init(void) {
     int result = libusb_init(&Context);
 #ifdef LIBMK_USB_DEBUG
@@ -472,9 +460,9 @@ int libmk_enable_control(LibMK_Handle* handle) {
 
 
 int libmk_send_control_packet(LibMK_Handle* handle) {
-    r = libmk_set_control_mode(handle, LIBMK_CUSTOM_CTRL);
+    int r = libmk_set_control_mode(handle, LIBMK_CUSTOM_CTRL);
     if (r != LIBMK_SUCCESS)
-        return LIBMK_ERR_SEND;
+        return r;
     LibMK_Firmware* fw;
     r = libmk_get_firmware_version(handle, &fw);
     if (r != LIBMK_SUCCESS) {
@@ -565,40 +553,16 @@ int libmk_set_full_color(LibMK_Handle* handle,
 
 
 int libmk_send_packet(LibMK_Handle* handle, unsigned char* packet) {
-<<<<<<< HEAD
-=======
-    /** Send a single packet of data to the specified device
-     *
-     * Calls libmk_send_recv_packet but instructs it not to care about
-     * receiving a response.
-    */
     return libmk_send_recv_packet(handle, packet, true);
 }
 
 
 int libmk_send_recv_packet(
         LibMK_Handle* handle, unsigned char* packet, bool response_required) {
-    /** Send a single packet of data to the specified device
-     *
-     * The device operates in INTERRUPT mode, expects 64 bytes of data
-     * every time. First sends the packet to the device OUT endpoint,
-     * then reads a packet from the device IN endpoint. If the packet
-     * was correctly formatted, this received packet has the same header
-     * as the packet sent. If the header is HEADER_ERROR, then a
-     * protocol error has occurred and the packet was rejected.
-     *
-     * response_required: Boolean argument that determines whether an
-     *   acknowledgement packet is required from the keyboard. Nearly
-     *   all operations yield a confirmation packet, but some do not. If
-     *   it is not required, the function will still attempt to retrieve
-     *   a response, but not care if it is not available.
-    */
     if (handle == NULL)
         handle = DeviceHandle;
     if (handle == NULL)
         return LIBMK_ERR_DEV_NOT_SET;
-    
->>>>>>> 748c903... Fix errors during profile control
     int t, result;
     int r = libusb_interrupt_transfer(
         handle->handle, LIBMK_EP_OUT | LIBUSB_ENDPOINT_OUT,

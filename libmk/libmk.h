@@ -50,7 +50,7 @@ typedef enum LibMK_Result {
     LIBMK_ERR_TRANSFER = -10, ///< Failed to transfer data to or from device
     LIBMK_ERR_DESCR = -11, ///< Failed to get libusb device descriptor
     LIBMK_ERR_PROTOCOL = -13, ///< Keyboard interaction protocol error
-    LIBMK_ERR_INV_ARGS = -14, ///< Invalid arguments passed by caller
+    LIBMK_ERR_INVALID_ARG = -14, ///< Invalid arguments passed by caller
 } LibMK_Result;
 
 
@@ -127,7 +127,6 @@ typedef enum LibMK_Model {
 } LibMK_Model;
 
 
-<<<<<<< HEAD
 /** @brief Struct describing a supported USB device
  *
  * This struct may be used as a linked list. Holds information required

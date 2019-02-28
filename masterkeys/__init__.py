@@ -103,8 +103,9 @@ def detect_devices():
     """
     Detect supported connected devices and return a tuple of models
     
-    :return: tuple[int] identifying models
-    :raises: RuntimeError upon internal Python error
+    :return: Tuple of integers (:class:``.Model``)
+    :rtype: Tuple[int, ...]
+    :raises: ``RuntimeError`` upon internal Python error
     """
     return _mk.detect_devices()
 
@@ -221,6 +222,7 @@ def get_device_ident():
     # type: () -> int
     """
     Return the bDevice USB descriptor value for the controlled keyboard
+
     :return: bDevice USB descriptor value or result code (<0)
     :rtype: int
     """
@@ -234,6 +236,11 @@ def set_all_led_color_dict(keys):
 
     The keys should be specified in a dictionary of the format
     {(row, col): (r, g, b)}
+
+    :param keys: Dictionary containing key color data
+    :type keys: Dict[Tuple[int, int], Tuple[int, int, int]]
+    :return: Result code (:class:``.ResultCode``)
+    :rtype: int
     """
     layout = build_layout_list()
     for (row, col), (r, g, b) in keys.items():
@@ -243,7 +250,12 @@ def set_all_led_color_dict(keys):
 
 def build_layout_list():
     # type: () -> List[List[Tuple[int, int, int], ...], ...]
-    """Return a list of the right proportions for full LED layout"""
+    """
+    Return a list of the right proportions for full LED layout
+
+    :return: Empty layout list
+    :rtype: List[List[Tuple[int, int, int], ...], ...]
+    """
     layout = list()
     for i in range(MAX_ROWS):
         column = list()
