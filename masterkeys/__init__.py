@@ -8,7 +8,6 @@ try:
 except ImportError:
     import warnings
     warnings.warn("Failed to import masterkeys C library", ImportWarning)
-from enum import Enum
 try:
     from typing import Dict, List, Tuple
 except ImportError:  # PyCharm typing
@@ -19,8 +18,7 @@ MAX_ROWS = 7
 MAX_COLS = 24
 
 
-class ResultCode(Enum):
-
+class ResultCode:
     # Success codes
     SUCCESS = 0
 
@@ -50,8 +48,7 @@ class ResultCode(Enum):
     ERR_PROTOCOL = -13
 
 
-class Effect(Enum):
-    # Effects
+class Effect:
     EFF_FULL_ON = 0
     EFF_BREATH = 1
     EFF_BREATH_CYCLE = 2
@@ -67,8 +64,7 @@ class Effect(Enum):
     EFF_RAPID_FIRE = 12
 
 
-class Model(Enum):
-    # Models
+class Model:
     MODEL_RGB_L = 0
     MODEL_RGB_M = 5
     MODEL_RGB_S = 1
