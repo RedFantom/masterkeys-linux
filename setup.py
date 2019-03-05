@@ -18,7 +18,7 @@ def read(file_name):
 
 setup(
     name="masterkeys",
-    version="0.1.1",
+    version="0.2.0",
     packages=["masterkeys"],
     description="MasterKeys Control Library for Linux",
     author="RedFantom",
