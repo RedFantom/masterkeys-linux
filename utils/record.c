@@ -10,7 +10,7 @@
 
 
 void write_file(unsigned char layout[LIBMK_MAX_ROWS][LIBMK_MAX_COLS],
-                int bVendor, int bDevice) {
+                int bVendor, int bDevice, LibMK_Firmware* fw) {
     /** Write a layout matrix with device details to a file
      *
      * The layout is stored in a file so that it can be submitted into the code
@@ -21,7 +21,8 @@ void write_file(unsigned char layout[LIBMK_MAX_ROWS][LIBMK_MAX_COLS],
     int r, c;
     FILE* file = fopen("layout.c", "w");
     fprintf(file, "{\n");
-    fprintf(file, "Vendor: 0x%04x, Device: 0x%04x\n", bVendor, bDevice);
+    fprintf(file, "Vendor: 0x%04x, Device: 0x%04x, Firmware: %d.%d.%d\n",
+        bVendor, bDevice, fw->major, fw->minor, fw->patch);
     for (r=0; r < LIBMK_MAX_ROWS; r++) {
         fprintf(file, "\t{");
         for (c=0; c < LIBMK_MAX_COLS; c++) {
@@ -78,6 +79,18 @@ int main(void) {
         for (c=0; c < LIBMK_MAX_COLS; c++)
             layout[r][c] = 0x00;
     libmk_enable_control(handle);
+    
+    LibMK_Firmware* fw;
+    result = libmk_get_firmware_version(handle, &fw);
+    if (result != LIBMK_SUCCESS) {
+        printf("Failed to retrieve keyboard firmware information: %d\n", result);
+        libmk_disable_control(handle);
+        libmk_free_handle(handle);
+        libmk_exit();
+        return -4;
+    }
+    printf("Keyboard Firmware version: %d.%d.%d\n", fw->major, fw->minor, fw->patch);
+    
     printf("Now, one by one, the keys will be turned on in the color red.\n"
            "Please enter the coordinates of the key that was turned on in \n"
            "the format `row,col\\n`. Use `-1,-1` to indicate that no led \n"
@@ -94,6 +107,7 @@ int main(void) {
             printf("LibMK Error Code: %d\n", result);
             libmk_disable_control(handle);
             libmk_free_handle(handle);
+            libmk_exit();
             return -3;
         }
         printf("Offset %d, color red: ", offset);
@@ -110,19 +124,21 @@ int main(void) {
         layout[r][c] = offset;
         packet = libmk_build_packet(
             8, 0xC0, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0x00);
-        packet[5] = offset;
+        packet[4] = offset;
         result = libmk_send_packet(handle, packet);
         if (result != LIBMK_SUCCESS) {
             printf("LibMK Error Code: %d\n", result);
             libmk_disable_control(handle);
             libmk_free_handle(handle);
+            libmk_exit();
             return -3;
         }
-        write_file(layout, handle->bVendor, handle->bDevice);
+        write_file(layout, handle->bVendor, handle->bDevice, fw);
     }
     libmk_disable_control(handle);
     libmk_free_handle(handle);
     printf("\nPlease share the created file along with your model on the \n"
            "GitHub repository to help support more devices.\n");
+    libmk_exit();
     return 0;
 }
