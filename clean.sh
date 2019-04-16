@@ -1,2 +1,2 @@
-rm -rf CMakeFiles CMakeCache.txt _skbuild
-rm record main ambilight record ambilight *.cmake *.so*
+rm -rf CMakeFiles CMakeCache.txt _skbuild CMakeTmp
+rm record main ambilight record *.cmake *.so*

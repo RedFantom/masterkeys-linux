@@ -72,9 +72,6 @@ int main(void) {
     if (result < 0)
         return -2;
 
-    unsigned char* packet = libmk_build_packet(
-        8, 0xC0, 0x01, 0x01, 0x00, 0x00, 0xFF, 0x00, 0x00);
-
     unsigned char layout[LIBMK_MAX_ROWS][LIBMK_MAX_COLS];
     int r, c;
     for (r=0; r < LIBMK_MAX_ROWS; r++)
@@ -88,25 +85,39 @@ int main(void) {
            "passed.\n\n");
     
     for (unsigned char offset=0x00; offset < 0xFF; offset++) {
+        unsigned char* packet = libmk_build_packet(
+            8, 0xC0, 0x01, 0x01, 0x00, 0x00, 0xFF, 0x00, 0x00);
         packet[4] = offset;
         packet[5] = 0xFF;
         result = libmk_send_packet(handle, packet);
-        if (result != LIBMK_SUCCESS)
+        if (result != LIBMK_SUCCESS) {
+            printf("LibMK Error Code: %d\n", result);
+            libmk_disable_control(handle);
+            libmk_free_handle(handle);
             return -3;
+        }
         printf("Offset %d, color red: ", offset);
         int read = 0;
         do {
             read = scanf("%d,%d", &r, &c);
+            if (read != 2)
+                printf("Invalid input.\n");
         } while (read != 2);
         if (r == -1 || c == -1)
             continue;
         else if (r == -2 || c == -2)
             break;
         layout[r][c] = offset;
-        packet[5] = 0x00;
+        packet = libmk_build_packet(
+            8, 0xC0, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0x00);
+        packet[5] = offset;
         result = libmk_send_packet(handle, packet);
-        if (result != LIBMK_SUCCESS)
+        if (result != LIBMK_SUCCESS) {
+            printf("LibMK Error Code: %d\n", result);
+            libmk_disable_control(handle);
+            libmk_free_handle(handle);
             return -3;
+        }
         write_file(layout, handle->bVendor, handle->bDevice);
     }
     libmk_disable_control(handle);
