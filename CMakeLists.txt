@@ -2,6 +2,8 @@
 # License: GNU GPLv3
 # Copyright (c) 2018-2019 RedFantom
 cmake_minimum_required(VERSION 3.9)
+set(CMAKE_C_FLAGS "-std=c99")
+project(libmk VERSION 0.1.0 DESCRIPTION "MasterKeys RGB Library")
 
 # Find LibUSB
 set(LIBUSB_INCLUDE_DIR /usr/include/libusb-1.0)
@@ -17,7 +19,6 @@ FIND_LIBRARY(LIBUSB_LIBRARIES NAMES usb-1.0
     PATH_SUFFIXES lib)
 
 # LibMK
-project(libmk VERSION 0.1.0 DESCRIPTION "MasterKeys RGB Library")
 
 add_library(mk SHARED libmk/libmk.c)
 set_target_properties(mk PROPERTIES
@@ -30,7 +31,6 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 install(TARGETS mk
     LIBRARY DESTINATION lib
     PUBLIC_HEADER DESTINATION include)
-set(CMAKE_C_FLAGS "-std=c99")
 
 if(SKBUILD)  # The masterkeys package can only be built with scikit-build
 
