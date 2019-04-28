@@ -25,6 +25,7 @@ bool exit_requested = false;
 unsigned char target_color[3] = {0};
 pthread_mutex_t exit_req_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t target_color_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t keyboard_lock = PTHREAD_MUTEX_INITIALIZER;
 Display* display;
 Window root;
 XWindowAttributes gwa;
@@ -71,7 +72,22 @@ int capture_screenshot(Screenshot** screenshot) {
 
 
 void* calculate_keyboard_color(void *void_ptr) {
-    /** Update the keyboard lighting color to the screen contents */
+    /** Continuously capture screens and calculate the dominant colour
+     *
+     * Options are given in defines:
+     * MAX_WIDTH: If 0, uses full screen width. If -1, uses only the
+     *   first half of the pixel columns for double monitors. Otherwise,
+     *   limited to value of MAX_WIDTH.
+     * LOWER_THRESHOLD: Minimum summed value of the RGB triplet, used
+     *   for filtering out dark pixels.
+     * UPPER_THRESHOLD: Maximum summed value of the RGB triplet, used
+     *   for filtering out bright pixels.
+     * SATURATION_BIAS: Minimum required difference between any pair
+     *   of bytes of the RGB triplet of a pixel.
+     * BRIGHTNESS_NORM: If defined, target colors sent to the keyboard
+     *   are scaled so that at least one of the RGB values of the
+     *   triplet is the maximum of 255.
+     */
     Screenshot* screen;
 
     while (true) {
@@ -177,20 +193,24 @@ void* update_keyboard_color(void* ptr) {
 
         int diff;
         bool equal = true;
-        pthread_mutex_lock(&exit_req_lock);
+        pthread_mutex_lock(&target_color_lock);
         for (int i=0; i < 3; i++) {
             diff = (int) target_color[i] - color[i];
             prev[i] = color[i];
             color[i] += (unsigned char) (diff / 20.0);
             equal = (prev[i] == target_color[i]) && equal;
         }
-        pthread_mutex_unlock(&exit_req_lock);
-
+        pthread_mutex_unlock(&target_color_lock);
+        
         if (equal)
             continue;
+    
+        pthread_mutex_lock(&keyboard_lock);
         int r = libmk_set_full_color(NULL, color[0], color[1], color[2]);
         if (r != LIBMK_SUCCESS)
             printf("LibMK Error: %d\n", r);
+        pthread_mutex_unlock(&keyboard_lock);
+        
         struct timespec time;
         time.tv_nsec = 100000000 / 4;
         nanosleep(&time, NULL);
