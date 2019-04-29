@@ -12,6 +12,7 @@
 #include <time.h>
 #include <X11/Xlib.h>
 #include <X11/X.h>
+#include <dbus/dbus.h>
 
 
 #define MAX_WIDTH -1  // 0: Full width, -1: / 2, n_pixels otherwise
@@ -19,6 +20,7 @@
 #define BRIGHTNESS_NORM
 #define UPPER_TRESHOLD 700
 #define LOWER_TRESHOLD 25
+#define CATCH_NOTIFICATIONS
 
 
 bool exit_requested = false;
@@ -43,6 +45,56 @@ void interrupt_handler(int signal) {
     exit_requested = true;
     pthread_mutex_unlock(&exit_req_lock);
 }
+
+
+#ifdef CATCH_NOTIFICATIONS
+DBusHandlerResult notification_callback(
+        DBusConnection* conn, DBusMessage* message, void* user_data) {
+    // char* header = dbus_string_get_data(message->header);
+    // printf("Header: %s\n", header);
+    printf("Message!\n");
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
+void notification_setup(){
+    DBusError error;
+    DBusConnection* conn;
+    int r;
+    
+    dbus_error_init(&error);
+    conn = dbus_bus_get(DBUS_BUS_SESSION, &error);
+    if (dbus_error_is_set(&error)) {
+        printf("DBus Connection Error: %s\n", error.message);
+        dbus_error_free(&error);
+    }
+    if (conn == NULL)
+        return;
+    
+    // request a name on the bus
+    r = dbus_bus_request_name(
+        conn, "org.freedesktop.Notifications", DBUS_NAME_FLAG_REPLACE_EXISTING, &error);
+    if (dbus_error_is_set(&error)) {
+        fprintf(stderr, "Name Error (%s)\n", error.message);
+        dbus_error_free(&error);
+    }
+    if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != r) {
+        printf("Not primary owner of the name.");
+        return;
+    }
+    
+    dbus_bus_add_match(conn, "eavesdrop=true, interface='org.freedesktop.Notifications', member='Notify'", &error);
+    dbus_connection_flush(conn);
+    if (dbus_error_is_set(&error)) {
+        printf("Failed to add match: %s\n", error.message);
+        dbus_error_free(&error);
+        return;
+    }
+    
+    dbus_connection_add_filter(conn, notification_callback, NULL, NULL);
+    
+    dbus_error_free(&error);
+}
+#endif
 
 
 int capture_screenshot(Screenshot** screenshot) {
@@ -91,7 +143,6 @@ void* calculate_keyboard_color(void *void_ptr) {
     Screenshot* screen;
 
     while (true) {
-
         pthread_mutex_lock(&exit_req_lock);
         if (exit_requested) {
             printf("Exit requested.\n");
@@ -210,7 +261,7 @@ void* update_keyboard_color(void* ptr) {
         if (r != LIBMK_SUCCESS)
             printf("LibMK Error: %d\n", r);
         pthread_mutex_unlock(&keyboard_lock);
-        
+    
         struct timespec time;
         time.tv_nsec = 100000000 / 4;
         nanosleep(&time, NULL);
@@ -237,20 +288,35 @@ int main() {
     // Open the XDisplay
     display = XOpenDisplay(NULL);
     root = DefaultRootWindow(display);
-    if (XGetWindowAttributes(display, root, &gwa) < 0)
+    if (XGetWindowAttributes(display, root, &gwa) < 0) {
+        libmk_disable_control(NULL);
+        libmk_exit();
         return -1;
+    }
 
     pthread_t keyboard, screenshot;
 
     // Run the loop
+    printf("Starting threads... ");
     pthread_create(&screenshot, NULL, calculate_keyboard_color, NULL);
     pthread_create(&keyboard, NULL, update_keyboard_color, NULL);
-
-    pthread_join(screenshot, NULL);
+    printf("Done.\n");
+    
+#ifdef CATCH_NOTIFICATIONS
+    printf("Setting up notification catcher... ");
+    notification_setup();
+    printf("Done.\n");
+#endif
+    
+    printf("Waiting for threads... ");
     pthread_join(keyboard, NULL);
+    pthread_join(screenshot, NULL);
+    printf("Done.\n");
     
     // Perform closing actions
+    printf("Disabling control... ");
     libmk_disable_control(NULL);
     libmk_exit();
+    printf("Done.\n");
     return 0;
 }
