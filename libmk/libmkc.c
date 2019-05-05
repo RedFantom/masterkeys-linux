@@ -218,10 +218,7 @@ LibMK_Instruction* libmk_create_instruction_all(
     LibMK_Instruction* i = libmk_create_instruction();
     i->colors = (unsigned char*) malloc(
         sizeof(unsigned char) * LIBMK_MAX_ROWS * LIBMK_MAX_COLS * 3);
-    for (unsigned char row=0; row<LIBMK_MAX_ROWS; row++)
-        for (unsigned char col=0; col<LIBMK_MAX_COLS; col++)
-            for (unsigned char j=0; j<3; j++)
-                i->colors[row * LIBMK_MAX_COLS + j] = c[row][col][j];
+    memcpy(i->colors, c, LIBMK_MAX_ROWS * LIBMK_MAX_COLS * 3);
     i->type = LIBMK_INSTR_ALL;
     return i;
 }
@@ -264,7 +261,7 @@ LibMK_Result libmk_sched_instruction(
         c->instr->id = 1;
     } else {
         LibMK_Instruction* t = c->instr;
-        while (true) {
+        while (t != NULL) {
             if (t->next == NULL) {
                 t->next = i;
                 t->next->id = t->id + 1;
