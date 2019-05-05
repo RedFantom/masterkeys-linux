@@ -73,7 +73,7 @@ LibMK_Result libmk_start_controller(LibMK_Controller* controller) {
         return r;
     pthread_create(
         &controller->thread, NULL,
-        (void*) libmk_run_controller, (void*) &controller);
+        (void*) libmk_run_controller, (void*) controller);
     return LIBMK_SUCCESS;
 }
 
@@ -95,12 +95,15 @@ void libmk_run_controller(LibMK_Controller* controller) {
         if (r != LIBMK_SUCCESS) {
             libmk_set_controller_error(controller, r);
             break;
-        } else {
-            // Move on to next instruction
-            LibMK_Instruction* old = controller->instr;
-            controller->instr = controller->instr->next;
-            libmk_free_instruction(old);
         }
+        // Sleep
+        struct timespec delay;
+        delay.tv_nsec = controller->instr->duration;
+        nanosleep(&delay, NULL);
+        // Move on to next instruction
+        LibMK_Instruction* old = controller->instr;
+        controller->instr = controller->instr->next;
+        libmk_free_instruction(old);
     }
     int r = libmk_disable_control(controller->handle);
     if (r != LIBMK_SUCCESS) {
@@ -153,8 +156,8 @@ LibMK_Controller_State libmk_join_controller(
         pthread_mutex_lock(&controller->state_lock);
         s = controller->state;
         pthread_mutex_unlock(&controller->state_lock);
-        if (s != LIBMK_STATE_ACTIVE)
-            break;
+        // if (s != LIBMK_STATE_ACTIVE)
+            // break;
         elapsed = ((double) (clock() - t)) / CLOCKS_PER_SEC;
         if (elapsed > timeout)
             return LIBMK_STATE_JOIN_ERR;
