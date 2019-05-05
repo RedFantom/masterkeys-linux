@@ -3,10 +3,11 @@
  * License: GNU GPLv3
  * Copyright (c) 2018 RedFantom
 */
-#include "../libmk/libmk.h"
+#include "libmk.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 
 typedef enum LibMK_Controller_State {
@@ -18,6 +19,13 @@ typedef enum LibMK_Controller_State {
     LIBMK_STATE_JOIN_ERR = 4,
     LIBMK_STATE_START_ERR = 5,
 } LibMK_Controller_State;
+
+
+typedef enum LibMK_Instruction_Type {
+    LIBMK_INSTR_FULL = 0,
+    LIBMK_INSTR_ALL = 1,
+    
+} LibMK_Instruction_Type;
 
 
 typedef struct LibMK_Instruction {
@@ -32,6 +40,7 @@ typedef struct LibMK_Instruction {
     unsigned int duration;
     unsigned int id;
     struct LibMK_Instruction* next;
+    LibMK_Instruction_Type type;
 } LibMK_Instruction;
 
 
@@ -46,6 +55,7 @@ typedef struct LibMK_Controller {
     pthread_t thread;
     pthread_mutex_t exit_flag_lock;
     bool exit_flag;
+    bool wait_flag;
     pthread_mutex_t state_lock;
     LibMK_Controller_State state;
     pthread_mutex_t error_lock;
@@ -56,13 +66,14 @@ typedef struct LibMK_Controller {
 LibMK_Controller* libmk_create_controller(LibMK_Handle* handle);
 LibMK_Result libmk_free_controller(LibMK_Controller* c);
 
-unsigned int libmk_sched_instruction(
+LibMK_Result libmk_sched_instruction(
     LibMK_Controller* controller, LibMK_Instruction* instruction);
 LibMK_Result libmk_cancel_instruction(LibMK_Controller* c, unsigned int id);
 
 LibMK_Result libmk_start_controller(LibMK_Controller* controller);
 void libmk_run_controller(LibMK_Controller* controller);
 void libmk_stop_controller(LibMK_Controller* controller);
+void libmk_wait_controller(LibMK_Controller* controller);
 LibMK_Controller_State libmk_join_controller(LibMK_Controller* c, double t);
 void libmk_set_controller_error(LibMK_Controller* c, LibMK_Result r);
 
@@ -70,7 +81,7 @@ LibMK_Instruction* libmk_create_instruction();
 LibMK_Instruction* libmk_create_instruction_full(unsigned char c[3]);
 LibMK_Instruction* libmk_create_instruction_all(
     unsigned char c[LIBMK_MAX_ROWS][LIBMK_MAX_COLS][3]);
+LibMK_Instruction* libmk_create_instruction_flash(unsigned char c[3], unsigned int delay, unsigned char n);
 void libmk_free_instruction(LibMK_Instruction* i);
 
-
-int libmk_exec_instruction(LibMK_Handle* h, LibMK_Instruction* i);
+LibMK_Result libmk_exec_instruction(LibMK_Handle* h, LibMK_Instruction* i);

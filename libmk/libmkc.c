@@ -7,13 +7,9 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
-
-void sleep (double t) {
-    /** Sleep for a specified amount of seconds */
-    clock_t start = clock();
-    while(((double) (clock() - start)) / CLOCKS_PER_SEC < t);
-}
+#define LIBMKC_DEBUG
 
 
 LibMK_Controller* libmk_create_controller(LibMK_Handle* handle) {
@@ -27,13 +23,17 @@ LibMK_Controller* libmk_create_controller(LibMK_Handle* handle) {
     pthread_mutex_init(&controller->exit_flag_lock, NULL);
     pthread_mutex_init(&controller->instr_lock, NULL);
     pthread_mutex_init(&controller->error_lock, NULL);
+    controller->instr = NULL;
+    controller->state = LIBMK_STATE_PRESTART;
+    controller->exit_flag = false;
+    controller->wait_flag = false;
     return controller;
 }
 
 
 LibMK_Controller_State libmk_get_controller_state(LibMK_Controller* c) {
     /** Return whether the given controller is running (active) */
-    pthread_mutex_lock(&c->state_lock);
+    pthread_mutex_lock(&(c->state_lock));
     LibMK_Controller_State b = c->state;
     pthread_mutex_unlock(&c->state_lock);
     return b;
@@ -42,9 +42,9 @@ LibMK_Controller_State libmk_get_controller_state(LibMK_Controller* c) {
 
 LibMK_Result libmk_get_controller_error(LibMK_Controller* c) {
     /** Return an error if the controller has one set */
-    pthread_mutex_lock(&c->error_lock);
+    pthread_mutex_lock(&(c->error_lock));
     LibMK_Result r = c->error;
-    pthread_mutex_unlock(&c->error_lock);
+    pthread_mutex_unlock(&(c->error_lock));
     return r;
 }
 
@@ -80,69 +80,83 @@ LibMK_Result libmk_start_controller(LibMK_Controller* controller) {
 
 void libmk_run_controller(LibMK_Controller* controller) {
     /** Execute instructions on a LibMK_Controller in a separate thread */
-    bool exit_flag;
+    pthread_mutex_lock(&(controller->state_lock));
+    controller->state = LIBMK_STATE_ACTIVE;
+    pthread_mutex_unlock(&(controller->state_lock));
+    bool exit_flag, wait_flag;
     while (true) {
-        pthread_mutex_lock(&controller->exit_flag_lock);
+        pthread_mutex_lock(&(controller->exit_flag_lock));
         exit_flag = controller->exit_flag;
-        pthread_mutex_unlock(&controller->exit_flag_lock);
+        wait_flag = controller->wait_flag;
+        pthread_mutex_unlock(&(controller->exit_flag_lock));
         if (exit_flag)
             break;
-        
-        if (controller->instr == NULL)
+        pthread_mutex_lock(&(controller->instr_lock));
+        if (controller->instr == NULL) {
+            pthread_mutex_unlock(&(controller->instr_lock));
+            if (wait_flag)
+                break;
+            usleep(1000);
             continue;
+        }
         LibMK_Result r = (LibMK_Result) libmk_exec_instruction(
             controller->handle, controller->instr);
         if (r != LIBMK_SUCCESS) {
             libmk_set_controller_error(controller, r);
+            pthread_mutex_unlock(&(controller->instr_lock));
             break;
         }
-        // Sleep
-        struct timespec delay;
-        delay.tv_nsec = controller->instr->duration;
-        nanosleep(&delay, NULL);
+        usleep(controller->instr->duration);
         // Move on to next instruction
         LibMK_Instruction* old = controller->instr;
         controller->instr = controller->instr->next;
         libmk_free_instruction(old);
+        pthread_mutex_unlock(&(controller->instr_lock));
     }
     int r = libmk_disable_control(controller->handle);
     if (r != LIBMK_SUCCESS) {
         libmk_set_controller_error(controller, (LibMK_Result) r);
     }
+    pthread_mutex_lock(&(controller->state_lock));
+    controller->state = LIBMK_STATE_STOPPED;
+    pthread_mutex_unlock(&(controller->state_lock));
 }
 
 
 void libmk_set_controller_error(LibMK_Controller* c, LibMK_Result e) {
     /** Set an error in the controller struct if one has not been set */
-    pthread_mutex_lock(&c->error_lock);
+    pthread_mutex_lock(&(c->error_lock));
     if (c->error == LIBMK_SUCCESS)
         c->error = e;
-    pthread_mutex_unlock(&c->error_lock);
+    pthread_mutex_unlock(&(c->error_lock));
 }
 
 
-int libmk_exec_instruction(LibMK_Handle* h, LibMK_Instruction* i) {
+LibMK_Result libmk_exec_instruction(LibMK_Handle* h, LibMK_Instruction* i) {
     /** Execute a single instruction on the keyboard controlled */
     if (i == NULL)
         return libmk_send_control_packet(h);
-    else if (i->colors != NULL) {
+    else if (i->type == LIBMK_INSTR_ALL) {
         return libmk_set_all_led_color(h, i->colors);
-    } else {
-        unsigned char colors[LIBMK_MAX_ROWS][LIBMK_MAX_COLS][3];
-        for (unsigned char r = 0; r < LIBMK_MAX_ROWS; r++)
-            for (unsigned char c = 0; c < LIBMK_MAX_COLS; c++)
-                for (unsigned char k = 0; k < 3; k++)
-                    colors[r][c][k] = i->color[k];
-        return libmk_set_all_led_color(h, (unsigned char*) colors);
+    } else if (i->type == LIBMK_INSTR_FULL) {
+        return libmk_set_full_color(h, i->color[0], i->color[1], i->color[2]);
     }
 }
 
 
 void libmk_stop_controller(LibMK_Controller* controller) {
     /** Stop a LibMK_Controller running in a separate thread */
-    pthread_mutex_lock(&controller->exit_flag_lock);
+    pthread_mutex_lock(&(controller->exit_flag_lock));
     controller->exit_flag = true;
-    pthread_mutex_unlock(&controller->exit_flag_lock);
+    pthread_mutex_unlock(&(controller->exit_flag_lock));
+}
+
+
+void libmk_wait_controller(LibMK_Controller* controller) {
+    /** Set the flag to wait for the controller to finish scheduled instr */
+    pthread_mutex_lock(&(controller->exit_flag_lock));
+    controller->wait_flag = true;
+    pthread_mutex_unlock(&(controller->exit_flag_lock));
 }
 
 
@@ -153,11 +167,11 @@ LibMK_Controller_State libmk_join_controller(
     clock_t t = clock();
     double elapsed;
     while (true) {
-        pthread_mutex_lock(&controller->state_lock);
+        pthread_mutex_lock(&(controller->state_lock));
         s = controller->state;
-        pthread_mutex_unlock(&controller->state_lock);
-        // if (s != LIBMK_STATE_ACTIVE)
-            // break;
+        pthread_mutex_unlock(&(controller->state_lock));
+        if (s != LIBMK_STATE_ACTIVE)
+            break;
         elapsed = ((double) (clock() - t)) / CLOCKS_PER_SEC;
         if (elapsed > timeout)
             return LIBMK_STATE_JOIN_ERR;
@@ -168,6 +182,7 @@ LibMK_Controller_State libmk_join_controller(
 
 void libmk_free_instruction(LibMK_Instruction* i) {
     /** Free the memory allocated for an executed instruction */
+    fflush(stdout);
     if (i->colors != NULL)
         free(i->colors);
     free(i);
@@ -180,6 +195,9 @@ LibMK_Instruction* libmk_create_instruction() {
         (LibMK_Instruction*) malloc(sizeof(LibMK_Instruction));
     i->duration = 0;
     i->id = 0;
+    i->type = -1;
+    i->next = NULL;
+    i->colors = NULL;
     return i;
 }
 
@@ -189,6 +207,7 @@ LibMK_Instruction* libmk_create_instruction_full(unsigned char c[3]) {
     LibMK_Instruction* i = libmk_create_instruction();
     for (unsigned char j=0; j<3; j++)
         i->color[j] = c[j];
+    i->type = LIBMK_INSTR_FULL;
     return i;
 }
 
@@ -203,6 +222,35 @@ LibMK_Instruction* libmk_create_instruction_all(
         for (unsigned char col=0; col<LIBMK_MAX_COLS; col++)
             for (unsigned char j=0; j<3; j++)
                 i->colors[row * LIBMK_MAX_COLS + j] = c[row][col][j];
+    i->type = LIBMK_INSTR_ALL;
+    return i;
+}
+
+
+LibMK_Instruction* libmk_create_instruction_flash(
+        unsigned char c[3], unsigned int delay, unsigned char n) {
+    unsigned char color[3] = {0};
+    LibMK_Instruction* i = libmk_create_instruction_full(color);
+    LibMK_Instruction* k = i;
+    LibMK_Instruction* l;
+    for (unsigned char j=0; j<n; j++) {
+        color[0] = ((double) j / (double) n) * c[0];
+        color[1] = ((double) j / (double) n) * c[1];
+        color[2] = ((double) j / (double) n) * c[2];
+        l = libmk_create_instruction_full(color);
+        l->duration = delay;
+        k->next = l;
+        k = l;
+    }
+    for (unsigned char j=n; j>0; j--) {
+        color[0] = ((double) j / (double) n) * c[0];
+        color[1] = ((double) j / (double) n) * c[1];
+        color[2] = ((double) j / (double) n) * c[2];
+        l = libmk_create_instruction_full(color);
+        l->duration = delay;
+        k->next = l;
+        k = l;
+    }
     return i;
 }
 
@@ -210,7 +258,7 @@ LibMK_Instruction* libmk_create_instruction_all(
 LibMK_Result libmk_sched_instruction(
     LibMK_Controller* c, LibMK_Instruction* i) {
     /** Schedule a single instruction for execution on the controller */
-    pthread_mutex_lock(&c->instr_lock);
+    pthread_mutex_lock(&(c->instr_lock));
     if (c->instr == NULL) {
         c->instr = i;
         c->instr->id = 1;
@@ -225,14 +273,23 @@ LibMK_Result libmk_sched_instruction(
             t = t->next;
         }
     }
-    pthread_mutex_unlock(&c->instr_lock);
+    if (i->next != NULL) {
+        LibMK_Instruction *k = i->next;
+        unsigned int id = i->id;
+        while (k != NULL) {
+            id += 1;
+            k->id = id;
+            k = k->next;
+        }
+    }
+    pthread_mutex_unlock(&(c->instr_lock));
     return LIBMK_SUCCESS;
 }
 
 
 LibMK_Result libmk_cancel_instruction(LibMK_Controller* c, unsigned int id) {
     /** Cancel a scheduled instruction from executing */
-    pthread_mutex_lock(&c->instr_lock);
+    pthread_mutex_lock(&(c->instr_lock));
     LibMK_Instruction* prev = NULL;
     LibMK_Instruction* curr = c->instr;
     while (curr != NULL) {
@@ -248,6 +305,6 @@ LibMK_Result libmk_cancel_instruction(LibMK_Controller* c, unsigned int id) {
         prev = curr;
         curr = curr->next;
     }
-    pthread_mutex_unlock(&c->instr_lock);
+    pthread_mutex_unlock(&(c->instr_lock));
     return LIBMK_SUCCESS;
 }

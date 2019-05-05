@@ -16,3 +16,16 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 install(TARGETS mk
     LIBRARY DESTINATION lib
     PUBLIC_HEADER DESTINATION include)
+
+add_library(mkc SHARED libmk/libmkc.c)
+set_target_properties(mkc PROPERTIES
+        VERSION ${PROJECT_VERSION}
+        PUBLIC_HEADER libmk/libmkc.h
+        PREFIX "")
+target_link_libraries(mk usb-1.0)
+include_directories(${LIBUSB_INCLUDE_DIR})
+
+install(TARGETS mkc
+        LIBRARY DESTINATION lib
+        PUBLIC_HEADER DESTINATION include)
+
