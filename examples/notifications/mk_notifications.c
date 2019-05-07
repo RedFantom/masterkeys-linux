@@ -183,13 +183,11 @@ static PyObject* stop(PyObject* self, PyObject* args) {
 static PyObject* py_calculate_dominant_color(PyObject* self, PyObject* args) {
     /** Python interface to fast dominant color calculation function */
     PyObject* list;
-    int w, h, divider, lower, upper, sat_bias;
-    bool brightness_norm;
-    if (!PyArg_ParseTuple(args, "O!iiiiiip",
+    int w, h, divider, lower, upper, sat_bias, brightness_norm;
+    if (!PyArg_ParseTuple(args, "O!iiiiiii",
             &PyList_Type, &list, &divider, &w, &h, &lower, &upper,
             &sat_bias, &brightness_norm))
         return NULL;
-    
     unsigned char data[w][h][3];
     PyObject* column, *row, *e;
     for (int x=0; x<w; x++) {
@@ -215,11 +213,10 @@ static PyObject* py_calculate_dominant_color(PyObject* self, PyObject* args) {
             }
         }
     }
-    
     unsigned char result[3];
     PyObject* tuple = PyTuple_New(3);
     calc_dominant_color(
-        data, w, h, result, divider, sat_bias, lower, upper, brightness_norm);
+        data, w, h, result, divider, sat_bias, lower, upper, brightness_norm==1);
     for (int i=0; i<3; i++)
         PyTuple_SetItem(tuple, i, PyInt_FromLong(result[i]));
     return tuple;
@@ -227,7 +224,6 @@ static PyObject* py_calculate_dominant_color(PyObject* self, PyObject* args) {
 
 
 void __flash_keyboard(unsigned char* color) {
-    printf("Flashing %d, %d, %d\n", color[0], color[1], color[2]);
     pthread_mutex_lock(&target_lock);
     target_override = true;
     pthread_mutex_unlock(&target_lock);
