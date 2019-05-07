@@ -23,6 +23,7 @@ unsigned char target_color[3] = {0};
 /// Mutexes
 pthread_mutex_t exit_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t target_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t keyboard_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /// Threads
 pthread_t keyboard_thread;
@@ -92,7 +93,7 @@ static PyObject* init(PyObject* self, PyObject* args) {
     }
     
     args = init_capture(divider, sat_bias, lower, upper, brightness_norm, &target_color,
-        &target_lock, &exit_requested, &exit_lock);
+        &target_lock, &exit_requested, &exit_lock, &keyboard_lock);
     
     if (args == NULL) {
         libmk_exit();
@@ -192,4 +193,34 @@ static PyObject* py_calculate_dominant_color(PyObject* self, PyObject* args) {
     for (int i=0; i<3; i++)
         PyTuple_SetItem(tuple, i, result[i]);
     return tuple;
+}
+
+
+void _flash_keyboard(unsigned char* color) {
+    unsigned char r = color[0], g = color[1], b = color[2];
+    for (int i=0; i<256; i++) {
+        pthread_mutex_unlock(&target_lock);
+        for (int j=0; j<3; j++)
+            target_color[j] = (unsigned char) ((double) color[j] * (double) j / 255.0);
+        pthread_mutex_unlock(&target_lock);
+    }
+    for (int i=255; i>-1; i--)
+        pthread_mutex_unlock(&target_lock);
+        for (int j=0; j<3; j++)
+            target_color[j] = (unsigned char) ((double) color[j] * (double) j / 255.0);
+        pthread_mutex_unlock(&target_lock);
+        
+    }
+    
+}
+
+
+static PyObject* flash_keyboard(PyObject* self, PyObject* args) {
+    /** Asynchronously flash the keyboard from Python in a sepcific color */
+    pthread_t thread;
+    unsigned char r, g, b;
+    if (!PyArg_ParseTuple(args, "bbb", &r, &g, &b))
+        return NULL;
+    unsigned char color[3] = {r, g, b};
+    pthread_create(&thread, NULL, _flash_keyboard, color);
 }

@@ -13,6 +13,7 @@ typedef struct CaptureArgs {
     unsigned char* target_color;
     pthread_mutex_t* target_lock;
     pthread_mutex_t* exit_lock;
+    pthread_mutex_t* keyboard_lock;
     bool* exit_flag;
     Display* display;
     Window root;
@@ -32,9 +33,9 @@ typedef struct Screenshot {
 
 
 CaptureArgs* init_capture(int divider, int sat_bias, int lower, int upper,
-                          bool brightness_norm,
-                          unsigned char* target_color, pthread_mutex_t* target_lock,
-                          bool* exit_flag, pthread_mutex_t* exit_lock) {
+                          bool brightness_norm, unsigned char* target_color,
+                          pthread_mutex_t* target_lock, bool* exit_flag,
+                          pthread_mutex_t* exit_lock, pthread_mutex_t* kb_lock) {
     /** Initialize a CaptureArgs struct that can be passed as thread argument */
     CaptureArgs* args = (CaptureArgs*) malloc(sizeof(CaptureArgs));
     
@@ -47,6 +48,7 @@ CaptureArgs* init_capture(int divider, int sat_bias, int lower, int upper,
     args->target_lock = target_lock;
     args->exit_flag = exit_flag;
     args->exit_lock = exit_lock;
+    args->keyboard_lock = kb_lock;
     
     args->display = XOpenDisplay(NULL);
     args->root = DefaultRootWindow(args->display);
@@ -83,10 +85,12 @@ void capturer(struct CaptureArgs* args) {
         free(screenshot->data);
         free(screenshot);
         
+        pthread_mutex_lock(args->keyboard_lock);
         pthread_mutex_lock(args->target_lock);
         for (int i=0; i<3; i++)
             args->target_color[i] = target[i];
         pthread_mutex_unlock(args->target_lock);
+        pthread_mutex_unlock(args->keyboard_lock);
     }
 }
 

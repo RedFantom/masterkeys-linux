@@ -17,9 +17,6 @@ FIND_LIBRARY(LIBUSB_LIBRARIES NAMES usb-1.0
         PATH_SUFFIXES lib)
 message("CMake found libusb: " ${LIBUSB_INCLUDE_DIR} ", usb-1.0")
 find_package(X11 REQUIRED)
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs REQUIRED)
-find_package(PythonExtensions)
 
 include_directories(${LIBUSB_INCLUDE_DIR} ${X11_INCLUDE_DIRS} libmk)
 link_libraries(usb-1.0 ${X11_LIBRARIES})
@@ -53,15 +50,15 @@ target_link_libraries(ctrl mk mkc)
 add_executable(ambilight examples/ambilight/ambilight.c)
 target_link_libraries(ambilight mk pthread)
 
-project(mk_notifications)
-add_library(mk_notifications MODULE
-    examples/notifications/mk_notifications.c)
-python_extension_module(mk_notifications)
-set_target_properties(mk_notifications PROPERTIES
-    OUTPUT_NAME "mk_notifications")
-
 # masterkeys Python module
 if (SKBUILD)   # python setup.py
+    find_package(PythonInterp REQUIRED)
+    find_package(PythonLibs REQUIRED)
+    find_package(PythonExtensions)
+
+    find_package(PythonInterp REQUIRED)
+    find_package(PythonLibs REQUIRED)
+    find_package(PythonExtensions)
     project(masterkeys VERSION 0.2.0 DESCRIPTION "Wrapper around libmk")
     add_library(masterkeys MODULE
         masterkeys/masterkeys.c
