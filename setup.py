@@ -5,15 +5,28 @@ Copyright (c) 2018-2019 RedFantom
 """
 try:
     from skbuild import setup
+    from skbuild.command.build import build
 except ImportError:
     print("scikit-build is required to build this project")
     raise
+from shutil import copyfile
+import glob
+import os
 
 
 def read(file_name):
     with open(file_name) as fi:
         contents = fi.read()
     return contents
+
+
+class BuildCommand(build):
+    """Intercept the build command to copy modules"""
+    def run(self):
+        build.run(self)
+        source = os.path.join("./_skbuild/linux*/cmake-build/*notifications.so*")
+        target = os.path.join("./examples/notifications/mk_notifications.so")
+        copyfile(glob.glob(source)[0], target)
 
 
 setup(
@@ -38,5 +51,6 @@ setup(
     ],
     long_description=read("README.md"),
     zip_safe=False,
-    install_requires=["scikit-build"]
+    install_requires=["scikit-build"],
+    cmdclass={"build": BuildCommand}
 )

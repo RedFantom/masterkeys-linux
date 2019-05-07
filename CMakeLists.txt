@@ -56,9 +56,8 @@ if (SKBUILD)   # python setup.py
     find_package(PythonLibs REQUIRED)
     find_package(PythonExtensions)
 
-    find_package(PythonInterp REQUIRED)
-    find_package(PythonLibs REQUIRED)
-    find_package(PythonExtensions)
+    message("CMake found Python: " ${PYTHON_LIBRARIES})
+
     project(masterkeys VERSION 0.2.0 DESCRIPTION "Wrapper around libmk")
     add_library(masterkeys MODULE
         masterkeys/masterkeys.c
@@ -68,4 +67,12 @@ if (SKBUILD)   # python setup.py
     set_target_properties(masterkeys PROPERTIES
         OUTPUT_NAME "masterkeys")
     install(TARGETS masterkeys LIBRARY DESTINATION masterkeys)
+
+    project(mk_notifications VERSION 0.2.0)
+    add_library(mk_notifications MODULE
+        examples/notifications/mk_notifications.c
+        libmk/libmk.c libmk/libmk.h)
+    target_link_libraries(mk_notifications ${PYTHON_LIBRARIES} mk)
+    set_target_properties(mk_notifications PROPERTIES
+        OUTPUT_NAME "mk_notifications")
 endif()

@@ -4,7 +4,9 @@
 */
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/X.h>
 
@@ -30,6 +32,13 @@ typedef struct Screenshot {
     unsigned char* data;
     unsigned int w, h;
 } Screenshot;
+
+
+unsigned char calc_diff(unsigned char one, unsigned char two) {
+    /** Calculate the absolute difference between two values */
+    int diff = (int) one - (int) two;
+    return diff < 0 ? -diff : diff;
+}
 
 
 CaptureArgs* init_capture(int divider, int sat_bias, int lower, int upper,
@@ -62,39 +71,6 @@ CaptureArgs* init_capture(int divider, int sat_bias, int lower, int upper,
 }
 
 
-void capturer(struct CaptureArgs* args) {
-    /** Function designed to be run in a thread, captures screenshots
-     *
-     */
-    while (true) {
-        pthread_mutex_lock(args->exit_lock);
-        bool exit = *(args->exit_flag);
-        pthread_mutex_unlock(args->exit_lock);
-        if (exit)
-            break;
-        
-        unsigned char target[3];
-        Screenshot* screenshot;
-        
-        capture(&screenshot, args->gwa, args->display, args->root);
-        calc_dominant_color(screenshot->data, screenshot->w, screenshot->h,
-                            target, args->divider, args->saturation_bias,
-                            args->lower_threshold, args->upper_threshold,
-                            args->brightness_norm);
-        
-        free(screenshot->data);
-        free(screenshot);
-        
-        pthread_mutex_lock(args->keyboard_lock);
-        pthread_mutex_lock(args->target_lock);
-        for (int i=0; i<3; i++)
-            args->target_color[i] = target[i];
-        pthread_mutex_unlock(args->target_lock);
-        pthread_mutex_unlock(args->keyboard_lock);
-    }
-}
-
-
 void capture(Screenshot** screenshot, XWindowAttributes gwa,
              Display* display, Window root) {
     /** Capture screenshot and save it to Screenshot struct
@@ -108,6 +84,9 @@ void capture(Screenshot** screenshot, XWindowAttributes gwa,
     
     (*screenshot)->data = (unsigned char*) malloc(
         width*height*3*sizeof(unsigned char));
+    (*screenshot)->w = width;
+    (*screenshot)->h = height;
+    
     XImage* img = XGetImage(
         display, root, 0, 0, width, height, AllPlanes, ZPixmap);
     unsigned long masks[3] = {
@@ -136,18 +115,18 @@ void calc_dominant_color(unsigned char* data, int w, int h,
     unsigned long colors[3] = {0};
     unsigned long n_pixels = 0;
     
+    divider = divider == 0 ? 1 : divider;
     int width = w / divider;
     
     /// Summing of pixels fitting criteria
     for (int x=0; x<width; x++) {
         for (int y=0; y<h; y++) {
             unsigned int sum = 0;
-            unsigned char r, g, b;
             int max_diff = 0;
-            unsigned char* pixel = data[x+y*w];
+            unsigned char* pixel = &(data[(x+y*w)*3]);
             for (int i=0; i<3; i++) {
                 int first = i, second = i+1<3 ? i+1 : 0;
-                unsigned char diff = pixel[first] - pixel[second];
+                unsigned char diff = calc_diff(pixel[first], pixel[second]);
                 max_diff = diff > max_diff ? diff : max_diff;
                 sum += pixel[i];
             }
@@ -160,7 +139,6 @@ void calc_dominant_color(unsigned char* data, int w, int h,
     }
     
     /// Averaging
-    unsigned char color[3];
     unsigned char max = 0;
     for (int i=0; i<3; i++) {
         if (n_pixels == 0) {
@@ -168,11 +146,51 @@ void calc_dominant_color(unsigned char* data, int w, int h,
             continue;
         }
         target[i] = (unsigned char) (colors[i] / n_pixels);
-        max = color[i] > max ? color[i] : max;
+        max = target[i] > max ? target[i] : max;
     }
+    
+    max = max == 0 ? 0xFF : max;
     
     /// Normalization
     if (brightness_norm && max != 0xFF)
         for (int i=0; i<3; i++)
-            target[i] = (unsigned char) ((double) color[i] * (255.0 / (double) max));
+            target[i] = (unsigned char) ((double) target[i] * (255.0 / (double) max));
+        
+}
+
+
+void capturer(struct CaptureArgs* args) {
+    /** Function designed to be run in a thread, captures screenshots
+     *
+     */
+    unsigned char target[3], previous[3];
+    
+    while (true) {
+        pthread_mutex_lock(args->exit_lock);
+        bool exit = *(args->exit_flag);
+        pthread_mutex_unlock(args->exit_lock);
+        if (exit)
+            break;
+        
+        Screenshot* screenshot;
+        
+        capture(&screenshot, args->gwa, args->display, args->root);
+        
+        calc_dominant_color(screenshot->data, screenshot->w, screenshot->h,
+                            target, args->divider, args->saturation_bias,
+                            args->lower_threshold, args->upper_threshold,
+                            args->brightness_norm);
+        
+        free(screenshot->data);
+        free(screenshot);
+        
+        pthread_mutex_lock(args->keyboard_lock);
+        pthread_mutex_lock(args->target_lock);
+        for (int i=0; i<3; i++) {
+            args->target_color[i] = target[i];
+            previous[i] = target[i];
+        }
+        pthread_mutex_unlock(args->target_lock);
+        pthread_mutex_unlock(args->keyboard_lock);
+    }
 }
