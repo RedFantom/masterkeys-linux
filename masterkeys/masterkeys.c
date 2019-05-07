@@ -24,7 +24,7 @@
 static PyObject* masterkeys_init(PyObject* self, PyObject* args) {
     /** Initialize the library upon import and register libmk_exit
      *
-     * libmk requires intialization to initialize a libusb session. This
+     * libmk requires initialization to initialize a libusb session. This
      * action is performed on import of the library. Upon (clean) exit
      * of the Python interpreter, the libmk_exit function should be
      * called to free these resources. This functions is therefore
