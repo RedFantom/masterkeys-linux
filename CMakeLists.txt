@@ -2,7 +2,7 @@
 # License: GNU GPLv3
 # Copyright (c) 2018-2019 RedFantom
 cmake_minimum_required(VERSION 3.9)
-set(CMAKE_C_FLAGS "-std=c99")
+set(CMAKE_C_FLAGS "-std=c99" CACHE STRING "compiler flags")
 project(libmk VERSION 0.2.0 DESCRIPTION "MasterKeys RGB Library")
 
 # Dependencies
