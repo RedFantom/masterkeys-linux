@@ -33,6 +33,8 @@ script:
   - python -c 'import masterkeys'
   - cd masterkeys-linux
   - python setup.py bdist_wheel
+  - cd examples/notifications
+  - python -c 'import mk_notifications'
 deploy:
   provider: releases
   api_key:
