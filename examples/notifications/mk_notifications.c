@@ -307,7 +307,6 @@ static struct PyMethodDef mk_notifications_funcs[] = {{
 
 #if PY_MAJOR_VERSION < 3
 PyMODINIT_FUNC initmk_notifications(void) {
-    mk_notifications_init(NULL, NULL);
     (void) Py_InitModule("mk_notifications", mk_notifications_funcs);
 }
 #else  // PY_MAJOR_VERSION >= 3

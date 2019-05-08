@@ -55,7 +55,7 @@ differ from the ones given here. The reference commands are for Ubuntu.
 ```bash
 # libx11-dev is for the AmbiLight and notifications examples
 # python3-gtk2.0 is for the notifications example
-sudo apt-get install cmake libusb-1.0.0-dev libx11-dev python3-gtk2.0
+sudo apt-get install cmake libusb-1.0.0-dev libx11-dev
 cd Source/masterkeys-linux  # Or wherever you have cloned the repo
 
 # Builds library, utilities and C examples
@@ -65,7 +65,8 @@ make
 sudo make install
 
 # For the Python library (system-wide install) and Python examples
-sudo python -m pip install scikit-build
+sudo python -m pip install scikit-build  # Needed for building
+sudo python -m pip install PyGObject dbus-python # Notifications example
 sudo python setup.py build install  # Python examples not installed
 
 # Or if you would rather install from PyPI, still requires dependencies

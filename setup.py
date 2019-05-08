@@ -24,7 +24,10 @@ class BuildCommand(build):
     """Intercept the build command to copy modules"""
     def run(self):
         build.run(self)
-        source = os.path.join("./_skbuild/linux*/cmake-build/*notifications.so*")
+        if len(glob.glob("./_skbuild/linux*")) != 0:
+            source = os.path.join("./_skbuild/linux*/cmake-build/*notifications.so*")
+        else:
+            source = os.path.join("./_skbuild/cmake-build/*notifications.so*")
         target = os.path.join("./examples/notifications/mk_notifications.so")
         copyfile(glob.glob(source)[0], target)
 
