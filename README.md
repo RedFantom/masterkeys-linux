@@ -36,7 +36,10 @@ The current list of supported devices includes:
 - MasterKeys Pro L RGB ISO (untested)
 
 If you would like for your device to be supported as well, please run 
-the `record` executable.
+the `record` executable. Enter the row and column coordinates of each
+key according to the Cooler Master reference each time for the key that
+lights up in red. The shared `layout.c` can be attached to an issue, and
+then your device is added in no-time!
 
 Keyboards with only monochrome lighting may use a different protocol and
 thus they would probably require more modifications than just adding a
@@ -50,20 +53,22 @@ To be able to compile and install any of the targets in this library,
 distribution, the name of the packages (if they are provided) may 
 differ from the ones given here. The reference commands are for Ubuntu.
 ```bash
-# Include libx11-dev if you wish to run the ambilight example
-sudo apt-get install cmake libusb-1.0.0-dev
+# libx11-dev is for the AmbiLight and notifications examples
+# python3-gtk2.0 is for the notifications example
+sudo apt-get install cmake libusb-1.0.0-dev libx11-dev python3-gtk2.0
 cd Source/masterkeys-linux  # Or wherever you have cloned the repo
-# Automatically also builds target ambilight
-# Exclude the examples in the CMakeLists.txt if you do not have libx11-dev
+
+# Builds library, utilities and C examples
+# Exclude them from the file if you don't want them to be built
 cmake .
 make
 sudo make install
 
-# For the Python library (system-wide install)
+# For the Python library (system-wide install) and Python examples
 sudo python -m pip install scikit-build
-sudo python setup.py install
+sudo python setup.py build install  # Python examples not installed
 
-# Or if you would rather install from PyPI
+# Or if you would rather install from PyPI, still requires dependencies
 sudo python -m pip install masterkeys
 ```
 
@@ -107,7 +112,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ```
 
 ## Credits
-Part of the implementation of this library is based on the more
+Part of the implementation of the `libmk` library is based on the more
 extensive protocol description written by [`chmod222`](https://github.com/chmod222),
 available under the LGPLv3 license in [`libcmmk`](https://github.com/chmod222/libcmmk),
 which has the same goal as this project.
