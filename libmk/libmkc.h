@@ -196,7 +196,7 @@ LibMK_Instruction* libmk_create_instruction_flash(
  *
  * @returns: Single LibMK_Instruction, duration may be set by the user.
  */
-LibMK_Result libmk_create_instruction_single(
+LibMK_Instruction* libmk_create_instruction_single(
     unsigned char row, unsigned char column, unsigned char c[3]);
 
 /** @brief: Free a single LibMK_Instruction
