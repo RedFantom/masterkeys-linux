@@ -12,6 +12,7 @@ interface to the LEDs on the MasterKeys keyboard series.
    source/devices
    source/examples/index
    Documentation: libmk <source/libmk/index>
+   Documentation: libmkc <source/libmkc/index>
    Documentation: masterkeys <source/masterkeys/index>
 
 .. |Travis| image:: https://api.travis-ci.com/RedFantom/masterkeys-linux.svg

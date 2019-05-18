@@ -51,7 +51,7 @@ typedef enum LibMK_Result {
     LIBMK_ERR_DESCR = -11, ///< Failed to get libusb device descriptor
     LIBMK_ERR_PROTOCOL = -13, ///< Keyboard interaction protocol error
     LIBMK_ERR_INVALID_ARG = -14, ///< Invalid arguments passed by caller
-    LIBMK_ERR_STILL_ACTIVE = -15,
+    LIBMK_ERR_STILL_ACTIVE = -15, ///< Controller is still active
 } LibMK_Result;
 
 
