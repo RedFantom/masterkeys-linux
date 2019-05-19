@@ -153,7 +153,7 @@ LibMK_Instruction* libmk_create_instruction();
 /** @brief Create a new instruction to set the full keyboard color
  *
  * @param c: RGB color triplet that is copied to the instruction.
- * @returns: Pointer to single LibMK_Instruction. Duration may be set
+ * @returns Pointer to single LibMK_Instruction. Duration may be set
  *    by the caller.
  */
 LibMK_Instruction* libmk_create_instruction_full(unsigned char c[3]);
@@ -161,7 +161,7 @@ LibMK_Instruction* libmk_create_instruction_full(unsigned char c[3]);
 /** @brief Create a new instruction to set all leds individually
  *
  * @param c: RGB color matrix that is copied to the instruction.
- * @returns: Pointer to single LibMK_Instruction. Duration may be set
+ * @returns Pointer to single LibMK_Instruction. Duration may be set
  *    by the caller.
  */
 LibMK_Instruction* libmk_create_instruction_all(
@@ -178,13 +178,13 @@ LibMK_Instruction* libmk_create_instruction_all(
  *    instruction execution itself.
  * @param n: Number of instructions in the linked list to be built.
  *
- * @returns: Pointer to linked list of LibMK_Instruction.
+ * @returns Pointer to linked list of LibMK_Instruction.
  */
 LibMK_Instruction* libmk_create_instruction_flash(
     unsigned char c[3], unsigned int delay, unsigned char n);
 
 
-/** @brief: Create a new instruction to set the color of a single key
+/** @brief Create a new instruction to set the color of a single key
  *
  * Overridden by a LIBMK_INSTR_FULL, just as in synchronous keyboard
  * control. When changing six or more keys, using a LIBMK_INSTR_ALL is
@@ -194,12 +194,12 @@ LibMK_Instruction* libmk_create_instruction_flash(
  * @param column: Column coordinate of the key
  * @param c: RGB triplet to be copied to the instruction
  *
- * @returns: Single LibMK_Instruction, duration may be set by the user.
+ * @returns Single LibMK_Instruction, duration may be set by the user.
  */
 LibMK_Instruction* libmk_create_instruction_single(
     unsigned char row, unsigned char column, unsigned char c[3]);
 
-/** @brief: Free a single LibMK_Instruction
+/** @brief Free a single LibMK_Instruction
  *
  * The instruction is expected to longer be part of a linked list. This
  * instruction is automatically called after an instruction has been
@@ -209,5 +209,5 @@ LibMK_Instruction* libmk_create_instruction_single(
  */
 void libmk_free_instruction(LibMK_Instruction* i);
 
-/** @brief: Internal Function. Execute a single instruction. NOT THREAD-SAFE. */
+/** @brief Internal Function. Execute a single instruction. NOT THREAD-SAFE. */
 LibMK_Result libmk_exec_instruction(LibMK_Handle* h, LibMK_Instruction* i);
