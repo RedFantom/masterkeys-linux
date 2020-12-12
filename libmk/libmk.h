@@ -145,7 +145,7 @@ typedef struct LibMK_Device {
 
 
 /** @brief Array of strings representing the supported models */
-const char* LIBMK_MODEL_STRINGS[];
+extern const char* LIBMK_MODEL_STRINGS[];
 
 /** @brief Struct describing an opened supported device
  *
