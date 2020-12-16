@@ -53,6 +53,7 @@ setup(
         "Topic :: System :: Hardware",
     ],
     long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     zip_safe=False,
     install_requires=["scikit-build"],
     cmdclass={"build": BuildCommand}
