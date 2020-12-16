@@ -3,7 +3,7 @@
 # Copyright (c) 2018-2019 RedFantom
 cmake_minimum_required(VERSION 3.9)
 set(CMAKE_C_FLAGS "-std=c99" CACHE STRING "compiler flags")
-project(libmk VERSION 0.2.0 DESCRIPTION "MasterKeys RGB Library")
+project(libmk VERSION 0.3.0 DESCRIPTION "MasterKeys RGB Library")
 
 # Dependencies
 set(LIBUSB_INCLUDE_DIR /usr/include/libusb-1.0)
@@ -58,7 +58,7 @@ if (SKBUILD)   # python setup.py
 
     message("CMake found Python: " ${PYTHON_LIBRARIES})
 
-    project(masterkeys VERSION 0.2.0 DESCRIPTION "Wrapper around libmk")
+    project(masterkeys VERSION 0.3.0 DESCRIPTION "Wrapper around libmk")
     add_library(masterkeys MODULE
         masterkeys/masterkeys.c
         libmk/libmk.c libmk/libmk.h)
@@ -68,7 +68,7 @@ if (SKBUILD)   # python setup.py
         OUTPUT_NAME "masterkeys")
     install(TARGETS masterkeys LIBRARY DESTINATION masterkeys)
 
-    project(mk_notifications VERSION 0.2.0)
+    project(mk_notifications VERSION 0.3.0)
     add_library(mk_notifications MODULE
         examples/notifications/mk_notifications.c
         libmk/libmk.c libmk/libmk.h)
